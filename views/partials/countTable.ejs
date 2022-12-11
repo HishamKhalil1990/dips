@@ -1,0 +1,58 @@
+<div class="container py-5">
+    <div class="row py-5">
+      <div class="col-lg-10 mx-auto">
+        <div class="card rounded shadow border-0">
+          <div class="card-body p-5 bg-white rounded">
+            <div class="table-responsive">
+              <table id="example" style="width:100%" class="table table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Item Code</th>
+                    <th>Item Name</th>
+                    <th>Barcode</th>
+                    <th>Scan</th>
+                    <th>Qty</th>
+                    <th>Add / Sub</th>
+                    <th>Unit</th>
+                    <th>Note</th>
+                    <th style="display:none;">Price</th>
+                    <th style="display:none;">Scale Type</th>
+                    <th style="display:none;">Whs Code</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody">
+                  <% for(let i = 0; i < data.length; i++){ const item = data[i] %>
+                    <% if(item.Qnty > 0) { %>
+                      <tr 
+                          class="trEfects active-input" 
+                          id="tr-<%= item.id %>"
+                          style="background-color:green"
+                        >
+                    <% } else { %>
+                      <tr class="trEfects hide" id="tr-<%= item.id %>">
+                    <% } %>
+                        <td id="td1-<%= item.id %>"><%= item.ItemCode %></td>
+                        <td id="td2-<%= item.id %>"><%= item.ItemName %></td>
+                        <td id="td3-<%= item.id %>"><%= item.CodeBars %></td>      
+                        <td id="td-<%= item.id %>" style="text-align: center"><input id="input-<%= item.id %>" type="number" style="width: 100px;" step="0.0"/></td>
+                        <% if(item.Qnty > 0) { %>
+                          <td id="qntytd-<%= item.id %>" style="text-align: center"><input id="qnty-<%= item.id %>" type="number" style="width: 100px;" step="0.0" value="<%= item.Qnty %>"/></td>
+                        <% } else { %>
+                          <td id="qntytd-<%= item.id %>" style="text-align: center"><input id="qnty-<%= item.id %>" type="number" style="width: 100px;" step="0.0" value="0"/></td>
+                        <% } %>
+                        <td id="td8-<%= item.id %>" style="text-align: center"><input id="checkbox-<%= item.id %>" type="checkbox" class="switch"/></td>
+                        <td id="td7-<%= item.id %>"><%= item.BuyUnitMsr %></td>
+                        <td id="td4-<%= item.id %>"><%= item.Note %></td>
+                        <td id="price-<%= item.id %>" style="display:none;"><%= item.Price %></td>
+                        <td id="type-<%= item.id %>" style="display:none;"><%= item.ScaleType %></td>
+                        <td id="whs-<%= item.id %>" style="display:none;"><%= item.WhsCode[0] %></td>
+                      </tr>
+                    <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
