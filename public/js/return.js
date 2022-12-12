@@ -89,7 +89,8 @@ const save = (id, input, previousVal, lastValue,type) => {
     if (value != 0) {
       $.post(`/Return/Save/${type}/${id}/${value}`).then((msg) => {
         if (msg == "error") {
-          alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+          alert("الرجاء حاول مرة اخرى");
+          location.reload();
           input.val("");
         } else {
           if(type == 'input'){
@@ -122,7 +123,8 @@ const trim = (value) => {
 const setOrderValueZero = async (id) => {
   $.post(`/Return/Save/${type}/${id}/0`).then((msg) => {
     if (msg == "error") {
-      alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+      alert("الرجاء حاول مرة اخرى");
+      location.reload();
     }
   });
 };
@@ -237,7 +239,8 @@ const showReport = () => {
   setTimeout(() => {
     $.get(`/Return/Report`).then((results) => {
       if (results == "error") {
-        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+        alert("الرجاء حاول مرة اخرى");
+        location.reload();
       } else {
         console.log(results)
         $("#reportDiv").html(results);
@@ -254,7 +257,8 @@ const showReport = () => {
 const showAllReports = () => {
   $.get("/Return/AllReports").then((results) => {
     if (results == "error") {
-      alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+      alert("الرجاء حاول مرة اخرى");
+      location.reload();
     } else {
       $("#reportDiv").html(results);
       $(document).ready(() => {

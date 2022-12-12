@@ -326,7 +326,8 @@ const trim = (value) => {
 const setOrderValueZero = async (id) => {
     $.post(`/Count/Save/${id}/0`).then((msg) => {
       if (msg == "error") {
-        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+        alert("الرجاء حاول مرة اخرى");
+        location.reload();
       }
     });
   };
@@ -353,7 +354,8 @@ const setOrderValueZero = async (id) => {
     setTimeout(() => {
       $.get(`/Count/Report/${countName}`).then((results) => {
         if (results == "error") {
-          alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+          alert("الرجاء حاول مرة اخرى");
+          location.reload();
         } else {
           $("#reportDiv").html(results);
           $(document).ready(() => {
@@ -400,7 +402,8 @@ const setOrderValueZero = async (id) => {
   const showAllReports = () => {
     $.get(`/Count/AllReports/${countName}`).then((results) => {
       if (results == "error") {
-        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+        alert("الرجاء حاول مرة اخرى");
+        location.reload();
       } else {
         $("#reportDiv").html(results);
         $(document).ready(() => {

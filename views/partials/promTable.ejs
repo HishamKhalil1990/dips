@@ -12,10 +12,10 @@
                     <th>Item Name</th>
                     <th>Barcode</th>
                     <!-- <th>Branch</th> -->
-                    <!-- <th>Avg. Daily Sale</th>
-                    <th>On Hand</th> -->
-                    <!-- <th>Min</th>
-                    <th id="max-th">Max</th> -->
+                    <th>Avg. Daily Sale</th>
+                    <th>On Hand</th> 
+                    <th>Min</th>
+                    <th id="max-th">Max</th>
                     <th>Order</th>
                     <!-- <th>Price</th> -->
                     <th>Unit</th>
@@ -25,11 +25,11 @@
                 <tbody id="tbody">
                   <% for(let i=0; i < info.results.length; i++){ const item = info.results[i] %>
                     <% if(item.Order > 0) {
-                      if((info.page == 'transfer') && (info.results[0].Warehousefrom == 102)) { %>
+                      if(parseFloat(item.Order) > parseFloat(item.MaxStock)) { %>
                         <tr 
                           class="trEfects semi-active" 
                           id="tr-<%= item.id %>"
-                          style="background-color:#ffd861"
+                          style="background-color:red"
                         >
                       <% } else { %>  
                         <tr 
@@ -46,10 +46,10 @@
                       <td id="td-<%= item.id %>"><%= item.ItemName %></td>
                       <td id="td-<%= item.id %>"><%= item.CodeBars %></td>
                       <!-- <td id="td-<%= item.id %>"><%= item.ListName %></td> -->
-                      <!-- <td id="td-<%= item.id %>"><%= item.AvgDaily %></td>
+                      <td id="td-<%= item.id %>"><%= item.AvgDaily %></td>
                       <td id="onHand-<%= item.id %>"><%= item.OnHand %></td>
                       <td id="min-<%= item.id %>"><%= item.MinStock %></td>
-                      <td id="max-<%= item.id %>"><%= item.MaxStock %></td> -->
+                      <td id="max-<%= item.id %>"><%= item.MaxStock %></td>
                       <% if(item.Order > 0) { %>
                         <td id="td-<%= item.id %>" style="display: flex;justify-content: center;"><input id="input-<%= item.id %>" type="number" style="width: 100px;" step="0.0" value="<%= item.Order %>"/></td>
                       <% } else { %>

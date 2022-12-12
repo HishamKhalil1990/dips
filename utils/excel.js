@@ -1,7 +1,9 @@
+require('dotenv').config()
 const xlsx = require('xlsx')
 const path = require('path')
 
-const filePath = './excel/'
+const EXCEL_PATH = process.env.EXCEL_PATH
+const filePath = './public/excel/'
 
 const exportToexcel = (records,columnsName,sheetName) => {
     let exported = false
@@ -11,7 +13,7 @@ const exportToexcel = (records,columnsName,sheetName) => {
         const workSheet = xlsx.utils.aoa_to_sheet(workSheetData)
         xlsx.utils.book_append_sheet(workBook,workSheet,sheetName)
         xlsx.writeFile(workBook,path.resolve(filePath + sheetName + '.xlsx'))
-        exported = true
+        exported = EXCEL_PATH + sheetName + '.xlsx'
     }catch(err){
         console.log(err)
     }

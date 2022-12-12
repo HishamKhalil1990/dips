@@ -243,7 +243,8 @@ const setOrderValueZero = async (id) => {
   const qty = 0
     $.post(`/Order/Receipt/${id}/0/${qty}`).then((msg) => {
       if (msg == "error") {
-        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+        alert("الرجاء حاول مرة اخرى");
+        location.reload();
       }
     });
   };
@@ -270,7 +271,8 @@ const setOrderValueZero = async (id) => {
     setTimeout(() => {
       $.get(`/Order/Report/deliver`).then((results) => {
         if (results == "error") {
-          alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+          alert("الرجاء حاول مرة اخرى");
+          location.reload();
         } else {
           $("#reportDiv").html(results);
           $(document).ready(() => {
@@ -322,7 +324,8 @@ const setOrderValueZero = async (id) => {
     let end= new Date().toISOString();
     $.get(`/Order/AllReports/deliver/${poNumber}`).then((results) => {
       if (results == "error") {
-        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+        alert("الرجاء حاول مرة اخرى");
+        location.reload();
       } else {
         $("#reportDiv").html(results);
         $(document).ready(() => {

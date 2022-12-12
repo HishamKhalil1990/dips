@@ -361,11 +361,19 @@ const submit = async (req,res) =>{
                     text += `رقم التحويل ${records[0].GenCode}`
                     sendEmail(text,subject,managerEmail)
                 }else if(page == 'promotion'){
-                    const subject = 'طلب بضاعة عروض'
-                    let text = `هنالك طلب بضاعة عروض من مستودع ${records[0].WhsCode}`
-                    text += '\n'
-                    text += `رقم الطلب ${records[0].GenCode}`
-                    sendEmail(text,subject,managerEmail)
+                    let isPromotion = false
+                    records.forEach(rec => {
+                        if(rec.Order > rec.MaxStock){
+                            isPromotion = true
+                        }
+                    })
+                    if(isPromotion){
+                        const subject = 'طلب بضاعة عروض'
+                        let text = `هنالك طلب بضاعة عروض من مستودع ${records[0].WhsCode}`
+                        text += '\n'
+                        text += `رقم الطلب ${records[0].GenCode}`
+                        sendEmail(text,subject,managerEmail)
+                    }
                 }
                 const start = async() => {
                     const no = await file.getPostNo(`./${req.session.whsCode}/postNumber.txt`)
@@ -741,7 +749,11 @@ const promotionPage = async (req,res) => {
     if(req.session.loggedin)
     {
         prisma.getDataLocal(req.session.whsCode,req.session.employeeNO).then(results => {
-            res.render('promotion',{data:results})
+            const start = async() => {
+                const value = await file.getlabel(req.session.whsCode)
+                res.render('promotion',{info:{data:results,value}})
+            }
+            start()
         }).catch(err => {
             res.render('error')
         });

@@ -258,7 +258,11 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note,count) =>
                 warehouseTo = rec.WhsCode
                 warehousefrom = MAIN_WHAREHOUSE;
                 order = rec.Order
-                sapProcess = 4
+                if(parseFloat(rec.Order) > parseFloat(rec.MaxStock)){
+                    sapProcess = 4
+                }else{
+                    sapProcess = 5
+                }
             }
             if(userName != undefined){
                 pool.request()
@@ -915,8 +919,8 @@ const getCountingAvailable = async(counts,message,whs,username) => {
     }
 }
 
-const exportReqToExcel = async () => {
-    let records = await prisma.findOrderList()
+const exportReqToExcel = async (whs) => {
+    let records = await prisma.findOrderList(whs)
     if(records.length > 0){
         const mappedeRecords = records.map(rec => {
             return [
@@ -935,7 +939,7 @@ const exportReqToExcel = async () => {
         const columnsName = ['Item Code','Item Name','Barcode','Avg. Daily Sale','On Hand','Min','Max','Order','Unit']
         const status = exportToexcel(mappedeRecords,columnsName,sheetName)
         if(status){
-            return 'done'
+            return status
         }else{
             return 'error'
         }
