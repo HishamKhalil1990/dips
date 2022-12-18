@@ -243,7 +243,8 @@ const getCloseOrder = (value,conValue) => {
 const setOrderValueZero = async (id) => {
   $.post(`/Order/Save/${id}/0`).then((msg) => {
     if (msg == "error") {
-      alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+      alert("الرجاء حاول مرة اخرى");
+      location.reload();
     }
   });
 };
@@ -365,7 +366,8 @@ const showReport = () => {
   setTimeout(() => {
     $.get(`/Order/Report/${page}`).then((results) => {
       if (results == "error") {
-        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+        alert("الرجاء حاول مرة اخرى");
+        location.reload();
       } else {
         $("#reportDiv").html(results);
         $(document).ready(() => {
@@ -375,12 +377,14 @@ const showReport = () => {
           if(page == 'request'){
             $("#excel").on("click", (e) => {
               $.post('/Excel/requestReport').then(msg => {
-                if(msg == 'done'){
-                  alert("تم استخراج اكسل شيت");
-                }else if(msg == 'error'){
-                  alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+                if(msg == 'error'){
+                  alert("الرجاء حاول مرة اخرى");
+                  location.reload();
                 }else if(msg == 'noData'){
                   alert('الرجاء تحديد كميات لبعض المواد ثم اعادة المحاولة')
+                }else{
+                  document.getElementById('exportExcel').href = msg
+                  document.getElementById('exportExcel').click()
                 }
               })
             });
@@ -394,7 +398,8 @@ const showReport = () => {
 const showAllReports = () => {
   $.get(`/Order/AllReports/${page}/genCode`).then((results) => {
     if (results == "error") {
-      alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+      alert("الرجاء حاول مرة اخرى");
+      location.reload();
     } else {
       $("#reportDiv").html(results);
       $(document).ready(() => {
@@ -437,7 +442,8 @@ const selectFrom = (fullID) => {
     option = optValue
     $.post(`/Order/From?value=${optValue}`).then((results) => {
       if (results == "error") {
-        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+        alert("الرجاء حاول مرة اخرى");
+        location.reload();
       } else {
         changeStatus(optValue)
       }

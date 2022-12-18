@@ -1,6 +1,7 @@
 <div id="demo-modal" class="modal-v">
     <div class="report__content">
-      <div id="closeDiv1">
+      <div id="closeDiv2">
+        <botton id="excel" class="btu"  style="margin-left: 30px;"><p class="para">Excel</p></botton>
         <button id='close'>X</button>
       </div>
       <div class="container py-5">
@@ -18,9 +19,9 @@
                           <th>Item Code</th>
                           <th>Item Name</th>
                           <!-- <th>Branch</th> -->
-                          <!-- <th>On Hand</th>
+                          <th>On Hand</th>
                           <th>Min</th>
-                          <th id="max-th">Max</th> -->
+                          <th id="max-th">Max</th>
                           <th>Order</th>
                           <!-- <th>Price</th> -->
                           <th>Unit</th>
@@ -36,10 +37,10 @@
                             <td style="display:none;"><%= item.ConvFactor %></td>
                             <td><%= item.ItemCode %></td>
                             <td><%= item.ItemName %></td>
-                            <!-- <td><%= item.ListName %></td>
+                            <!-- <td><%= item.ListName %></td> -->
                             <td><%= item.OnHand %></td>
                             <td><%= item.MinStock %></td>
-                            <td><%= item.MaxStock %></td> -->
+                            <td><%= item.MaxStock %></td>
                             <td style="text-align: center;"><div><%= item.Order %></div></td>
                             <!-- <td><%= item.Price %></td> -->
                             <td ><%= item.BuyUnitMsr %></td>

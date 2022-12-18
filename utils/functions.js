@@ -130,13 +130,23 @@ const sendRequestOrder = async (records,userName,page,note,employeeNO,count) => 
         const start = async () => {
             try{
                 const pool = await sql.getSQL()
+                let genCodeExist
                 if(pool){
                     if(page != 'receipt'){
-                        const genCodeExist = await checkGenCodeSql(pool,records[0].GenCode)
+                        genCodeExist = await checkGenCodeSql(pool,records[0].GenCode)
                         if(genCodeExist){
                             const newGenCode  = await updateExistGenCode(records[0].WhsCode,employeeNO,records[0].GenCode)
                             records = records.map(rec => {
                                 rec.GenCode = newGenCode
+                                return rec
+                            })
+                        }
+                    }else if(page == 'receipt'){
+                        let gencode = 'r-' + records[0].GenCode
+                        genCodeExist = await checkGenCodeSql(pool,gencode)
+                        if(genCodeExist){
+                            records = records.map(rec => {
+                                rec.Status = 'sent'
                                 return rec
                             })
                         }
@@ -153,8 +163,9 @@ const sendRequestOrder = async (records,userName,page,note,employeeNO,count) => 
                                 .catch((err) => {
                                     reject()
                                 })
-                            }else{
+                            }else if(page == "receipt"){
                                 if(parseInt(rec.Difference) != 0){
+                                    rec.GenCode = 'r-' + rec.GenCode
                                     startTransaction(pool,rec,userName,arr,length,page,note,count)
                                     .then(() => {
                                         resolve()
@@ -258,7 +269,11 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note,count) =>
                 warehouseTo = rec.WhsCode
                 warehousefrom = MAIN_WHAREHOUSE;
                 order = rec.Order
-                sapProcess = 4
+                if(parseFloat(rec.Order) > parseFloat(rec.MaxStock)){
+                    sapProcess = 4
+                }else{
+                    sapProcess = 5
+                }
             }
             if(userName != undefined){
                 pool.request()
@@ -915,8 +930,8 @@ const getCountingAvailable = async(counts,message,whs,username) => {
     }
 }
 
-const exportReqToExcel = async () => {
-    let records = await prisma.findOrderList()
+const exportReqToExcel = async (whs) => {
+    let records = await prisma.findOrderList(whs)
     if(records.length > 0){
         const mappedeRecords = records.map(rec => {
             return [
@@ -935,7 +950,7 @@ const exportReqToExcel = async () => {
         const columnsName = ['Item Code','Item Name','Barcode','Avg. Daily Sale','On Hand','Min','Max','Order','Unit']
         const status = exportToexcel(mappedeRecords,columnsName,sheetName)
         if(status){
-            return 'done'
+            return status
         }else{
             return 'error'
         }

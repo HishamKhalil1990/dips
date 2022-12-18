@@ -72,7 +72,7 @@ const excel = async (req,res) => {
     if(req.session.loggedin)
     {
         if(type == 'requestReport'){
-            const msg = await functions.exportReqToExcel()
+            const msg = await functions.exportReqToExcel(req.session.whsCode)
             res.send(msg)
         }
     }

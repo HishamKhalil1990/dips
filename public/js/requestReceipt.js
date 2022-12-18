@@ -159,7 +159,8 @@ const setOrderValueZero = async (id) => {
   $(`#diff-${id}`)[0].innerHTML = qty
   $.post(`/Order/Receipt/${id}/0/${qty}`).then((msg) => {
     if (msg == "error") {
-      alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+      alert("الرجاء حاول مرة اخرى");
+      location.reload();
     }
   });
 };
@@ -281,7 +282,8 @@ const showReport = () => {
   setTimeout(() => {
     $.get(`/Order/Report/${page}`).then((results) => {
       if (results == "error") {
-        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+        alert("الرجاء حاول مرة اخرى");
+        location.reload();
       } else {
         $("#reportDiv").html(results);
         $(document).ready(() => {
@@ -297,7 +299,8 @@ const showReport = () => {
 const showAllReports = () => {
   $.get(`/Order/AllReports/${page}/${genCode}`).then((results) => {
     if (results == "error") {
-      alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+      alert("الرجاء حاول مرة اخرى");
+      location.reload();
     } else {
       $("#reportDiv").html(results);
       $(document).ready(() => {

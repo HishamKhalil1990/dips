@@ -10,7 +10,8 @@ $(document).ready(() => {
                         page = 'goTransfer'
                         showPage(page)
                     }else{
-                        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم"); 
+                        alert("الرجاء حاول مرة اخرى");
+                        location.reload(); 
                     }
                 })
             }else if(currentPage == "Receipt"){
@@ -72,7 +73,8 @@ const goToGenCode = (value) => {
         if(msg == 'done'){
             goToPage('goReqReceiptTable')
         }else{
-            alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم"); 
+            alert("الرجاء حاول مرة اخرى");
+            location.reload(); 
         }
     })
 }

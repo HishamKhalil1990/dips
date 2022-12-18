@@ -69,6 +69,18 @@ $(function () {
       logOut();
     }
   });
+  ///////////////////////////////////////// temp suggestion ////////////////////////////////////////
+  $("#suggestion").on("click", (e) => {
+    const txt = $("#suggestion p")[0].innerHTML.trim();
+    if (txt == "Suggestion") {
+      showModal('waiting')
+      createSuggest();
+    } else {
+      showModal('waiting')
+      undoSuggest();
+    }
+  });
+  ///////////////////////////////////////// temp suggestion ////////////////////////////////////////
 });
 
 const goToPage = (page) => {
@@ -98,10 +110,16 @@ const edit = (id) => {
 const save = (id, input, previousVal,lastValue) => {
   const tr = $(`#tr-${id}`);
   let value = input.val();
+  const max = $(`#max-${id}`);
+  const maxValue = max[0].innerHTML;
   if((lastValue == value) && (value != "")){
     tr.addClass("active-input");
     tr.removeClass("hide");
-    tr.css("background-color", "green");
+    if(value <= maxValue){
+      tr.css("background-color", "green");
+    }else{
+      tr.css("background-color", "red");
+    }
   }else if (value == "") {
     if (previousVal) {
       setOrderValueZero(id);
@@ -125,22 +143,14 @@ const save = (id, input, previousVal,lastValue) => {
                 );
                 input.val("");
             } else {
-                if (page == "request") {
-                tr.addClass("active-input");
-                tr.removeClass("hide");
+              tr.addClass("active-input");
+              tr.removeClass("hide");
+              if(parseFloat(value) <= parseFloat(maxValue)){
                 tr.css("background-color", "green");
-                } else if (page == "transfer") {
-                const fromWhs = $(`#select-0`)[0].value;
-                if(fromWhs != ""){
-                    tr.addClass("active-input");
-                    tr.removeClass("hide");
-                    tr.css("background-color", "green");
-                }else{
-                    tr.addClass("semi-active");
-                    tr.removeClass("hide");
-                    tr.css("background-color", "#ffd861");
-                }
-                }
+              }else{
+                tr.css("background-color", "red");
+                // alert("يرجى العلم ان الكمية المطلوبة اعلى من Max")
+              }
             }
             });
         } else {
@@ -201,7 +211,8 @@ const getCloseOrder = (value,conValue) => {
 const setOrderValueZero = async (id) => {
   $.post(`/Order/Save/${id}/0`).then((msg) => {
     if (msg == "error") {
-      alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+      alert("الرجاء حاول مرة اخرى");
+      location.reload();
     }
   });
 };
@@ -316,26 +327,27 @@ const showReport = () => {
   setTimeout(() => {
     $.get(`/Order/Report/promotion`).then((results) => {
       if (results == "error") {
-        alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+        alert("الرجاء حاول مرة اخرى");
+        location.reload();
       } else {
         $("#reportDiv").html(results);
         $(document).ready(() => {
           $("#close").on("click", (e) => {
             $("#reportDiv").empty();
           });
-        //   if(page == 'request'){
-        //     $("#excel").on("click", (e) => {
-        //       $.post('/Excel/requestReport').then(msg => {
-        //         if(msg == 'done'){
-        //           alert("تم استخراج اكسل شيت");
-        //         }else if(msg == 'error'){
-        //           alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
-        //         }else if(msg == 'noData'){
-        //           alert('الرجاء تحديد كميات لبعض المواد ثم اعادة المحاولة')
-        //         }
-        //       })
-        //     });
-        //   }
+          $("#excel").on("click", (e) => {
+            $.post('/Excel/requestReport').then(msg => {
+              if(msg == 'error'){
+                alert("الرجاء حاول مرة اخرى");
+                location.reload();
+              }else if(msg == 'noData'){
+                alert('الرجاء تحديد كميات لبعض المواد ثم اعادة المحاولة')
+              }else{
+                document.getElementById('exportExcel').href = msg
+                document.getElementById('exportExcel').click()
+              }
+            })
+          });
         });
       }
     });
@@ -345,7 +357,8 @@ const showReport = () => {
 const showAllReports = () => {
   $.get(`/Order/AllReports/promotion/genCode`).then((results) => {
     if (results == "error") {
-      alert("IT خطأ داخلي الرجاء المحاولة مرة اخرى او طلب المساعدة من قسم");
+      alert("الرجاء حاول مرة اخرى");
+      location.reload();
     } else {
       $("#reportDiv").html(results);
       $(document).ready(() => {
@@ -405,3 +418,34 @@ const changeStatus = (value) => {
     }
   }
 }
+
+///////////////////////////////////////// temp suggestion ////////////////////////////////////////
+const createSuggest = () => {
+  $.post("/Order/Create-Suggestios").then((msg) => {
+    reloadPage("Undo",msg)
+  })
+}
+
+const undoSuggest = () => {
+  $.post("/Order/Remove-Suggestios").then((msg) => {
+    reloadPage("Suggestion",msg)
+  })
+}
+
+const reloadPage = (value,msg) => {
+  new Promise((resolve,reject) => {
+    $.post(`/Order/Label/${value}`).then(msg => {
+      resolve()
+    })
+  }).then(() => {
+    if(msg == 'error'){
+      alert('بعض المواد لم يتم تعديلها لوجود خطا داخلي')
+      setTimeout(() => {
+        location.reload();
+      },1000)
+    }else{
+      location.reload();
+    }
+  })
+}
+///////////////////////////////////////// temp suggestion ////////////////////////////////////////
