@@ -130,13 +130,23 @@ const sendRequestOrder = async (records,userName,page,note,employeeNO,count) => 
         const start = async () => {
             try{
                 const pool = await sql.getSQL()
+                let genCodeExist
                 if(pool){
                     if(page != 'receipt'){
-                        const genCodeExist = await checkGenCodeSql(pool,records[0].GenCode)
+                        genCodeExist = await checkGenCodeSql(pool,records[0].GenCode)
                         if(genCodeExist){
                             const newGenCode  = await updateExistGenCode(records[0].WhsCode,employeeNO,records[0].GenCode)
                             records = records.map(rec => {
                                 rec.GenCode = newGenCode
+                                return rec
+                            })
+                        }
+                    }else if(page == 'receipt'){
+                        let gencode = 'r-' + records[0].GenCode
+                        genCodeExist = await checkGenCodeSql(pool,gencode)
+                        if(genCodeExist){
+                            records = records.map(rec => {
+                                rec.Status = 'sent'
                                 return rec
                             })
                         }
@@ -153,8 +163,9 @@ const sendRequestOrder = async (records,userName,page,note,employeeNO,count) => 
                                 .catch((err) => {
                                     reject()
                                 })
-                            }else{
+                            }else if(page == "receipt"){
                                 if(parseInt(rec.Difference) != 0){
+                                    rec.GenCode = 'r-' + rec.GenCode
                                     startTransaction(pool,rec,userName,arr,length,page,note,count)
                                     .then(() => {
                                         resolve()
