@@ -1,0 +1,201 @@
+generator Client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url = env("DATABASE_URL")
+}
+
+model requestItems {
+    id Int @id @default(autoincrement())
+    ItemCode String
+    ItemName String
+    ListNum Int
+    ListName String
+    AvgDaily Decimal @db.Decimal(10,6) @default(0)
+    SuggQty Decimal @db.Decimal(10,6) @default(0)
+    OnHand Decimal @db.Decimal(10,6) @default(0)
+    MinStock Decimal @db.Decimal(10,6) @default(0)
+    MaxStock Decimal @db.Decimal(10,6) @default(0)
+    Price Decimal @db.Decimal(10,6) @default(0)
+    BuyUnitMsr String @default("Piece")
+    WhsCode String
+    WhsName String
+    CodeBars String @default("no bar code")
+    ConvFactor Decimal @db.Decimal(10,6) @default(0)
+    Warehousefrom String @default("")
+    Warehouses String @default("")
+    Order Decimal @db.Decimal(10,6) @default(0)
+    Status String @default("pending")
+    GenCode String
+    Suggest Boolean @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model requestReceiptItems {
+    id Int @id @default(autoincrement())
+    ItemCode String
+    ItemName String
+    ListNum Int
+    ListName String
+    OnHand Decimal @db.Decimal(10,6)
+    MinStock Decimal @db.Decimal(10,6)
+    MaxStock Decimal @db.Decimal(10,6)
+    Price Decimal @db.Decimal(10,6)
+    BuyUnitMsr String @default("Piece")
+    WhsCode String
+    WhsName String
+    CodeBars String @default("no bar code")
+    ConvFactor Decimal @db.Decimal(10,6)
+    Warehousefrom String @default("")
+    OrderRequest Decimal @db.Decimal(10,6)
+    Order Decimal @db.Decimal(10,6) @default(0)
+    Difference Decimal @db.Decimal(10,6)
+    Status String @default("pending")
+    GenCode String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model rquestOrderhistory {
+    id Int @id @default(autoincrement())
+    ItemCode String
+    ItemName String
+    ListNum Int
+    ListName String
+    OnHand Decimal @db.Decimal(10,6) @default(0)
+    MinStock Decimal @db.Decimal(10,6) @default(0)
+    MaxStock Decimal @db.Decimal(10,6) @default(0)
+    Price Decimal @db.Decimal(10,6) @default(0)
+    BuyUnitMsr String
+    WhsCode String
+    WhsName String
+    CodeBars String @default("no bar code")
+    ConvFactor Decimal @db.Decimal(10,6) @default(0)
+    Warehousefrom String @default("")
+    Order Decimal @db.Decimal(10,6) @default(0)
+    Status String
+    GenCode String
+    CountRows Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model deliveredItemshistory {
+    id Int @id @default(autoincrement())
+    ItemCode String
+    ItemName String
+    CodeBars String
+    WhsCode String
+    WarehouseTo String
+    WhsName String
+    Order Decimal @db.Decimal(10,6)
+    OrderRequest Decimal @db.Decimal(10,6)
+    Status String @default("delivered")
+    BuyUnitMsr String
+    GenCode String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model receiptItems{
+    id Int @id @default(autoincrement())
+    ItemCode String
+    LineNum Int
+    Dscription String
+    CodeBars String @default("no bar code")
+    WhsCode String
+    CardName String
+    CardCode String
+    DocNum String
+    Status String @default("pending")
+    UgpName String
+    Order Decimal @db.Decimal(10,6)
+    OpenQty Decimal @db.Decimal(10,6)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model receipthistory{
+    id Int @id @default(autoincrement())
+    ItemCode String
+    LineNum Int
+    Dscription String
+    CodeBars String @default("no bar code")
+    WhsCode String
+    CardName String
+    CardCode String
+    DocNum String
+    Status String @default("received")
+    UgpName String
+    Order Decimal @db.Decimal(10,6)
+    OpenQty Decimal @db.Decimal(10,6)
+    GenCode String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model returnItems{
+    id Int @id @default(autoincrement())
+    ItemCode String
+    ItemName String
+    CodeBars String @default("no bar code")
+    WhsCode String
+    DocNum Int @default(0)
+    Status String @default("pending")
+    BuyUnitMsr String
+    Order Decimal @db.Decimal(10,6) @default(0)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model returnhistory{
+    id Int @id @default(autoincrement())
+    ItemCode String
+    ItemName String
+    CodeBars String @default("no bar code")
+    WhsCode String
+    DocNum Int
+    Status String
+    BuyUnitMsr String
+    Order Decimal @db.Decimal(10,6)
+    genCode String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model countRequest{
+    id Int @id @default(autoincrement())
+    CountingName String
+    CountingDate DateTime
+    ItemCode String
+    ItemName String
+    BuyUnitMsr String
+    WhsCode String
+    CodeBars String @default("no bar code")
+    Note String
+    Qnty Decimal @db.Decimal(10,6) @default(0)
+    Price Decimal @db.Decimal(10,6) @default(0)
+    ScaleType String
+    Status String @default("pending")
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model countHistory{
+    id Int @id @default(autoincrement())
+    CountingName String
+    CountingDate DateTime
+    ItemCode String
+    ItemName String
+    BuyUnitMsr String
+    WhsCode String
+    CodeBars String @default("no bar code")
+    Note String
+    Qnty Decimal @db.Decimal(10,6) @default(0)
+    Status String @default("sent")
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
