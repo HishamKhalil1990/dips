@@ -313,7 +313,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note,count) =>
                         checkSavedInRequestSql(rec.ItemCode,rec.GenCode,pool)
                         .then(() => {
                             if(page != "receipt"){
-                                prisma.updateStatus(rec.id,arr)
+                                prisma.updateStatus(rec.id,arr,rec.WhsCode,rec.GenCode)
                                 .then(() => {
                                     if(arr.length == length){
                                         pool.close();
@@ -324,7 +324,7 @@ const startTransaction = async (pool,rec,userName,arr,length,page,note,count) =>
                                     reject()
                                 })
                             }else{
-                                prisma.updateReqRecStatus(rec.id,arr)
+                                prisma.updateReqRecStatus(rec.id,arr,rec.WhsCode,rec.GenCode)
                                 .then(() => {
                                     if(arr.length == length){
                                         pool.close();
@@ -400,7 +400,7 @@ const startReturnTransaction = async (pool,rec,userName,arr,length,note,genCode)
                         reject()
                     }
                     console.log("Transaction committed.");
-                    prisma.updateReturnStatus(rec.id,arr)
+                    prisma.updateReturnStatus(rec.id,arr,rec.WhsCode,genCode)
                     .then(() => {
                         if(arr.length == length){
                             pool.close();
@@ -543,7 +543,7 @@ const startPOtransaction = async (pool,rec,userName,arr,length,gencode) => {
                     console.log("Transaction committed.");
                     checkSavedInPOtSql(rec.ItemCode,rec.DocNum,pool)
                     .then(() => {
-                        prisma.updatePOstatus(rec.id,arr)
+                        prisma.updatePOstatus(rec.id,arr,rec.WhsCode,DocNum)
                         .then(() => {
                             if(arr.length == length){
                                 pool.close();
@@ -741,7 +741,7 @@ const sendCountRec = async(rec,arr,pool,length) => {
             .then(result => {
                 if(result.rowsAffected.length > 0){
                     console.log('table record updated')
-                    prisma.deleteCountStatus(rec.id,arr)
+                    prisma.deleteCountStatus(rec.id,arr,rec.WhsCode)
                     .then(() => {
                         resolve()
                     })
@@ -749,7 +749,7 @@ const sendCountRec = async(rec,arr,pool,length) => {
                         reject()
                     })
                 }else{
-                    console.log(result.rowsAffected)
+                    // console.log(result.rowsAffected)
                     reject()
                 }
             })
@@ -975,9 +975,9 @@ const updateExistGenCode = async(whsCode,employeeNO,genCode) => {
     const no = await file.getPostNo(`./${whsCode}/postNumber.txt`)
     await file.updateGenCode(no,`./${whsCode}/postNumber.txt`)
     const newGenCode = await file.getGenCode(whsCode,`./${whsCode}/postNumber.txt`,employeeNO)
-    const checkInMysql = await prisma.getGenCodeMySql(genCode)
+    const checkInMysql = await prisma.getGenCodeMySql(genCode,whsCode)
     if(checkInMysql.length > 0){
-        await prisma.updateGenCode(genCode,newGenCode)
+        await prisma.updateGenCode(genCode,newGenCode,whsCode)
     }
     return newGenCode
 }

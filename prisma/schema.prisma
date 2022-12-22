@@ -199,3 +199,12 @@ model countHistory{
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
+
+model errorLog{
+    id Int @id @default(autoincrement())
+    Type String
+    Location String
+    When String
+    ErrorMsg String
+    createdAt DateTime @default(now())
+}

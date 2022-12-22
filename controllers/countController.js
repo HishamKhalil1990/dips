@@ -15,7 +15,7 @@ const getNames = async (req,res) => {
     if(req.session.loggedin)
     {   
         try{
-            const names = await prisma.getCountNames()
+            const names = await prisma.getCountNames(req.session.whsCode)
             res.send(names)
         }catch(err){
             res.send('error')
@@ -30,7 +30,7 @@ const getRequest = async (req,res) => {
     if(req.session.loggedin)
     {   
         try{
-            const data = await prisma.getCountRequest(value)
+            const data = await prisma.getCountRequest(value,req.session.whsCode)
             res.render('partials/countTable',{data})
         }catch(err){
             res.send('error')
@@ -43,7 +43,7 @@ const getRequest = async (req,res) => {
 const saveQuantity = async (req,res) => {   
     try{
         const {id,quantity} = req.params
-        prisma.updateCounts(id,quantity)
+        prisma.updateCounts(id,quantity,req.session.whsCode)
         .then(() => {
             res.send('done')
         }).catch(() => {
@@ -57,7 +57,7 @@ const saveQuantity = async (req,res) => {
 const report = async (req,res) => {
     const { value } = req.params
     try{
-        const data = await prisma.findCountsList(value)
+        const data = await prisma.findCountsList(value,req.session.whsCode)
         res.render('partials/countRep',{data})
     }catch(err){
         res.send('error')
@@ -67,7 +67,7 @@ const report = async (req,res) => {
 const allReport = async (req,res) => {
     const { value } = req.params
     try{
-        const data = await prisma.getCountRequestHis(value)
+        const data = await prisma.getCountRequestHis(value,req.session.whsCode)
         res.render('partials/countRep',{data})
     }catch(err){
         res.send('error')
@@ -77,7 +77,7 @@ const allReport = async (req,res) => {
 const submit = async (req,res) =>{
     const { value } = req.params
     try{
-        let records = await prisma.getCountRequest(value)
+        let records = await prisma.getCountRequest(value,req.session.whsCode)
         functions.submitCountToSQL(records)
         .then(() => {
             // res.send('done')

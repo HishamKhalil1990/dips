@@ -26,7 +26,7 @@ const returnPage = async (req,res) => {
 const saveValue = async (req,res) => {
     try{
         const {id,value,type} = req.params
-        prisma.updateReturn(id,value,type)
+        prisma.updateReturn(id,value,type,req.session.whsCode)
         .then(() => {
             res.send('done')
         }).catch(() => {
@@ -80,7 +80,7 @@ const report = async (req,res) => {
 const allReport = async (req,res) => {
     try{
         let genCode = await file.previousGetGenCode(req.session.whsCode,`./${req.session.whsCode}/refNumber.txt`,req.session.employeeNO)
-        let records = await prisma.findAllSentReturn(genCode)
+        let records = await prisma.findAllSentReturn(genCode,req.session.whsCode)
         res.render('partials/retReport',{results:records})
     }catch(err){
         res.send('error')

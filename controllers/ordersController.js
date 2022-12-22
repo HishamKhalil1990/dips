@@ -71,7 +71,7 @@ const printReport = async(req,res) => {
         let to;
         let mappedData;
         if(page == "request"){
-            records = await prisma.findAllSent(genCode)
+            records = await prisma.findAllSent(genCode,req.session.whsCode)
             let match = await file.getMatchingFile(req.session.whsCode)
             match = functions.codeToName(match)
             from = match[`${records[0].Warehousefrom}`]
@@ -95,7 +95,7 @@ const printReport = async(req,res) => {
                 res.send({results:mappedData,page,from,to})
             }
         }else{
-            records = await prisma.findAllDelivered(genCode)
+            records = await prisma.findAllDelivered(genCode,req.session.whsCode)
             if(records){
                 from = req.session.warehouseName
                 to = records[0].WhsName
@@ -214,7 +214,7 @@ const syncReqReceiptData = async(req,res) => {
     const {genCode} = req.params
     if(req.session.loggedin)
     {
-        const data = await prisma.findAllReceiptSaved(genCode)
+        const data = await prisma.findAllReceiptSaved(genCode,req.session.whsCode)
         if(data){
             const mappedData = data.map(rec => {
                 return {
@@ -292,7 +292,7 @@ const transferPage = async (req,res) => {
 const saveOrderValue = async (req,res) => {
     try{
         const {id,value} = req.params
-        prisma.update(id,value)
+        prisma.update(id,value,req.session.whsCode)
         .then(() => {
             res.send('done')
         }).catch(() => {
@@ -306,7 +306,7 @@ const saveOrderValue = async (req,res) => {
 const saveReceiptValue = async (req,res) => {
     try{
         const {id,value,diffValue} = req.params
-        prisma.updateReqReceipt(id,value,diffValue)
+        prisma.updateReqReceipt(id,value,diffValue,req.session.whsCode)
         .then(() => {
             res.send('done')
         }).catch(() => {
@@ -414,7 +414,7 @@ const submit = async (req,res) =>{
                             })
                         })
                         .then(() => {
-                            prisma.rejectRequests(genCode)
+                            prisma.rejectRequests(genCode,req.session.whsCode)
                         }).catch(() => {
                             console.log('could not save')
                         })
@@ -497,18 +497,18 @@ const allReport = async (req,res) => {
         if(page != 'receipt' && page != 'deliver'){
             if(page == 'promotion'){
                 let genCode = await file.previousGetGenCode(req.session.whsCode,`./${req.session.whsCode}/postNumber.txt`,req.session.employeeNO)
-                let records = await prisma.findAllSent(genCode)
+                let records = await prisma.findAllSent(genCode,req.session.whsCode)
                 res.render('partials/promRep',{results:records})
             }else{
                 let genCode = await file.previousGetGenCode(req.session.whsCode,`./${req.session.whsCode}/postNumber.txt`,req.session.employeeNO)
-                let records = await prisma.findAllSent(genCode)
+                let records = await prisma.findAllSent(genCode,req.session.whsCode)
                 res.render('partials/report',{results:records,page:"allreport"})
             }
         }else if(page == 'receipt'){
-            let records = await prisma.findAllReceipt(genCode)
+            let records = await prisma.findAllReceipt(genCode,req.session.whsCode)
             res.render('partials/reqRecAllReport',{results:records,page})
         }else if(page == 'deliver'){
-            let records = await prisma.findAllDelivered(genCode)
+            let records = await prisma.findAllDelivered(genCode,req.session.whsCode)
             res.render('partials/reqRecAllReport',{results:records,page})
         }
     }catch(err){
@@ -526,7 +526,7 @@ const changeFrom = async(req,res) => {
         }else{
             value = null
         }
-        prisma.updateFrom(value)
+        prisma.updateFrom(value,req.session.whsCode)
         .then(() => {
             res.send('done')
         }).catch(() => {
@@ -579,7 +579,7 @@ const createSuggest = async (req,res) => {
                     value = parseFloat(min) + (parseFloat(convFac) - parseFloat(min % convFac))
                 }
                 new Promise((resolve,reject) => {
-                    prisma.updateSuggest(id,value,true)
+                    prisma.updateSuggest(id,value,true,rec.WhsCode,rec.GenCode)
                     .then(() => {
                         resolve('done')
                     }).catch(() => {
@@ -620,7 +620,7 @@ const removeSuggest = async (req,res) => {
         const id = rec.id
         if(suggest){
             new Promise((resolve,reject) => {
-                prisma.updateSuggest(id,0,false)
+                prisma.updateSuggest(id,0,false,rec.WhsCode,rec.GenCode)
                 .then(() => {
                     resolve('done')
                 }).catch(() => {
