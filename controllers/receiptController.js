@@ -51,7 +51,7 @@ const sync = async (req,res) => {
 const saveQuantity = async (req,res) => {   
     try{
         const {id,quantity} = req.params
-        prisma.updatePOs(id,quantity)
+        prisma.updatePOs(id,quantity,req.session.whsCode)
         .then(() => {
             res.send('done')
         }).catch(() => {

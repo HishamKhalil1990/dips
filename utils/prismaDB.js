@@ -1,6 +1,6 @@
 require('dotenv').config()
 const file = require('./readAndWriteFiles')
-const { PrismaClient } = require('@prisma/client')
+const { PrismaClient,Prisma } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 const MAIN_WHAREHOUSE =process.env.MAIN_WHAREHOUSE
@@ -14,16 +14,7 @@ const createRecords = async (recordSet,page,employeeNO) => {
         }
         start()
     }).then(genCode => {
-        // const generateRecords = async () => {
-        //     const previousRecords = await findOrderList()
-        //     if(previousRecords.length > 0 && previousRecords[0].GenCode != genCode){
-        //         return completeTransfer(previousRecords,recordSet,page)
-        //     }else{
-        //         return deleteAndcreate(recordSet,genCode,page)
-        //     }
-        // }
         try{
-            // return generateRecords()
             return deleteAndcreate(recordSet,genCode,page,recordSet[0].WhsCode)   
         }catch(err){
             resolve()
@@ -66,7 +57,7 @@ const deleteAllInReturn = async (whs) => {
             }
         )
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','deleteAllInReturn (function)',`deleting records in {returnItems} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -87,7 +78,7 @@ const saveAllinReturn = async (mappedRecords) => {
             skipDuplicates:true
         })
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','saveAllinReturn (function)',`creating records in {returnItems} table for warehouse no: ${mappedRecords[0].WhsCode}`,e)
             reject()
         })
         .finally(async () => {
@@ -106,7 +97,7 @@ const addToDeliverHis = async (mappedRecords) => {
             skipDuplicates:true
         })
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','addToDeliverHis (function)',`creating records in {deliveredItemshistory} table for warehouse no: ${mappedRecords[0].WhsCode} and gencode ${mappedRecords[0].GenCode}`,e)
             reject()
         })
         .finally(async () => {
@@ -120,23 +111,9 @@ const addToDeliverHis = async (mappedRecords) => {
 
 const deleteAndcreate = async (recordSet,genCode,page,whs) => {
     return new Promise((resolve,reject) => {
-        // const isExist = recordsExist(genCode)
-        // if(isExist){
-        //     deleteAll(genCode)
-        //     .catch((e) => {
-        //         console.log(e)
-        //         reject()
-        //     })
-        //     .finally(async () => {
-        //         await prisma.$disconnect()
-        //         resolve()
-        //     })
-        // }else{
-        //     resolve()
-        // }
         deleteAll(whs)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','deleteAndcreate (function)',`deleting records in {requestItems} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -151,7 +128,7 @@ const deleteAndcreate = async (recordSet,genCode,page,whs) => {
 }
 
 const createAll = async (recordSet,genCode,model,page,whs) => {
-    if(page == "goRequest"){
+    if(page == "goRequest" || page == "goPomotion"){
         await file.addLabel("Suggestion",whs)
     }
     return new Promise((resolve,reject) => {
@@ -184,55 +161,6 @@ const createAll = async (recordSet,genCode,model,page,whs) => {
     })
 }
 
-// const completeTransfer = async (previousRecords,recordSet,genCode,page) => {
-//     return new Promise((resolve,reject) => {
-//         previousRecords.forEach(rec => {
-//             const start = async () =>{
-        
-//                 if(rec.Status == "sent"){
-//                     await saveInHostrical(rec)
-//                     .catch((e) => {
-//                         console.log(e)
-//                         reject()
-//                     })
-//                     .finally(async () => {
-//                         await prisma.$disconnect()
-//                     })
-//                 }
-//             }
-//             start()
-//         })
-//         resolve()
-//     }).then(async () => {
-//         return new Promise((resolve,reject) => {
-//             const start = async () => {
-//                 const preGenCode = await file.previousGetGenCode(recordSet[0].WhsCode,'./postNumber.txt')
-//                 deleteAll(preGenCode)
-//                 .catch((e) => {
-//                     console.log(e)
-//                     reject()
-//                 })
-//                 .finally(async () => {
-//                     await prisma.$disconnect()
-//                     resolve()
-//                 })
-//             }
-//             start()
-//         }).then(() => {
-//             return createAll(recordSet,genCode,'requestItems',page)
-//         })
-//     })
-// }
-
-// const recordsExist = async (genCode) => {
-//     const records = await findAll(genCode)
-//     if(records?.length > 0){
-//         return true
-//     }else{
-//         return false
-//     }
-// }
-
 const findAll = async(genCode) => {
     const records = await prisma.requestItems.findMany({
         orderBy: [
@@ -259,7 +187,7 @@ const deleteAllInReqReceipt = async(whs) => {
             }
         })
             .catch((e) => {
-                console.log(e)
+                saveErrorMsg('prisma','deleteAllInReqReceipt (function)',`deleting records in {requestReceiptItems} table for warehouse no: ${whs}`,e)
                 reject()
             })
             .finally(async () => {
@@ -277,7 +205,7 @@ const deleteDeliveredInReqReceipt = async(whs) => {
             }
         })
             .catch((e) => {
-                console.log(e)
+                saveErrorMsg('prisma','deleteDeliveredInReqReceipt (function)',`deleting records in {requestReceiptItems} table for warehouse no: ${whs}`,e)
                 reject()
             })
             .finally(async () => {
@@ -291,7 +219,7 @@ const createTable = async(data) => {
     return new Promise((resolve,reject) => {
         createRequestReceiptItems(data)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','createRequestReceiptItems (function)',`creating records in {requestReceiptItems} table for warehouse no: ${data[0].WhsCode} and GenCode: ${data[0].GenCode}`,e)
             reject()
         })
         .finally(async () => {
@@ -308,112 +236,142 @@ const createRequestReceiptItems = async(data) => {
     })
 }
 
-const findAllSaved = async(gencode) => {
-    const records = await prisma.rquestOrderhistory.findMany({
-        orderBy: [
-            {
-                ItemCode: 'asc',
+const findAllSaved = async(gencode,whs) => {
+    try{
+        const records = await prisma.rquestOrderhistory.findMany({
+            orderBy: [
+                {
+                    ItemCode: 'asc',
+                }
+            ],
+            where:{
+                GenCode: gencode
             }
-        ],
-        where:{
-            GenCode: gencode
+        })
+        if(records.length > 0){
+            return records
+        }else{
+            return
         }
-    })
-    if(records.length > 0){
-        return records
-    }else{
+    }catch(e){
+        saveErrorMsg('prisma','findAllSaved (function)',`get records from {rquestOrderhistory} table for warehouse no: ${whs} and GenCode: ${gencode}`,e)
         return
     }
 }
 
-const findAllReceiptSaved = async(gencode) => {
-    const records = await prisma.rquestOrderhistory.findMany({
-        orderBy: [
-            {
-                ItemCode: 'asc',
+const findAllReceiptSaved = async(gencode,whs) => {
+    try{
+        const records = await prisma.rquestOrderhistory.findMany({
+            orderBy: [
+                {
+                    ItemCode: 'asc',
+                }
+            ],
+            where:{
+                GenCode: gencode,
+                Status: "delivered"
             }
-        ],
-        where:{
-            GenCode: gencode,
-            Status: "delivered"
+        })
+        if(records.length > 0){
+            return records
+        }else{
+            return
         }
-    })
-    if(records.length > 0){
-        return records
-    }else{
+    }catch(err){
+        saveErrorMsg('prisma','findAllReceiptSaved (function)',`get records from {rquestOrderhistory} table for warehouse no: ${whs} and GenCode: ${gencode} for page (request receipt) `,e)
         return
     }
 }
 
-const findAllSent = async(genCode) => {
-    const records = await prisma.rquestOrderhistory.findMany({
-        orderBy: [
-            {
-                ItemCode: 'asc',
+const findAllSent = async(genCode,whs) => {
+    try{
+        const records = await prisma.rquestOrderhistory.findMany({
+            orderBy: [
+                {
+                    ItemCode: 'asc',
+                }
+            ],
+            where: {
+                GenCode : genCode
             }
-        ],
-        where: {
-            GenCode : genCode
+        })
+        if(records.length > 0){
+            return records
+        }else{
+            return
         }
-    })
-    if(records.length > 0){
-        return records
-    }else{
+    }catch(e){
+        saveErrorMsg('prisma','findAllSent (function)',`get records from {rquestOrderhistory} table for warehouse no: ${whs} and GenCode: ${genCode} for report in page (request or promotion)`,e)
         return
     }
 }
 
-const findAllReceipt = async(genCode) => {
-    const records = await prisma.rquestOrderhistory.findMany({
-        orderBy: [
-            {
-                ItemCode: 'asc',
+const findAllReceipt = async(genCode,whs) => {
+    try{
+        const records = await prisma.rquestOrderhistory.findMany({
+            orderBy: [
+                {
+                    ItemCode: 'asc',
+                }
+            ],
+            where: {
+                Status:"confirmed",
+                GenCode:genCode
             }
-        ],
-        where: {
-            Status:"confirmed",
-            GenCode:genCode
+        })
+        if(records.length > 0){
+            return records
+        }else{
+            return
         }
-    })
-    if(records.length > 0){
-        return records
-    }else{
+    }catch(e){
+        saveErrorMsg('prisma','findAllReceipt (function)',`get records from {rquestOrderhistory} table for warehouse no: ${whs} and GenCode: ${genCode} for report in page (request receipt)`,e)
         return
     }
 }
 
-const findAllDelivered = async(genCode) => {
-    const records = await prisma.deliveredItemshistory.findMany({
-        orderBy:[
-            {
-                ItemCode: 'asc',
+const findAllDelivered = async(genCode,whs) => {
+    try{
+        const records = await prisma.deliveredItemshistory.findMany({
+            orderBy:[
+                {
+                    ItemCode: 'asc',
+                }
+            ],
+            where: {
+                GenCode:genCode
             }
-        ],
-        where: {
-            GenCode:genCode
+        })
+        if(records.length > 0){
+            return records
+        }else{
+            return
         }
-    })
-    if(records.length > 0){
-        return records
-    }else{
+    }catch(e){
+        saveErrorMsg('prisma','findAllDelivered (function)',`get records from {deliveredItemshistory} table for warehouse no: ${whs} and GenCode: ${genCode} for report in page (transfer delivery)`,e)
         return
     }
 }
 
-const findAllSentReturn = async(genCode) => {
-    const records = await prisma.returnhistory.findMany({
-        orderBy:[
-            {
-                ItemCode: 'asc',
+const findAllSentReturn = async(genCode,whs) => {
+    try{
+        const records = await prisma.returnhistory.findMany({
+            orderBy:[
+                {
+                    ItemCode: 'asc',
+                }
+            ],
+            where: {
+                genCode : genCode
             }
-        ],
-        where: {
-            genCode : genCode
+        })
+        if(records.length > 0){
+            return records
+        }else{
+            return
         }
-    })
-    if(records.length > 0){
-        return records
-    }else{
+    }catch(e){
+        saveErrorMsg('prisma','findAllSentReturn (function)',`get records from {returnhistory} table for warehouse no: ${whs} and GenCode: ${genCode} for report in page (return items)`,e)
         return
     }
 }
@@ -432,7 +390,7 @@ const findOrderList = async(whs) => {
             WhsCode:whs
         }
     }).catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','findOrderList (function)',`get records with only ordered items from {requestItems} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -454,7 +412,7 @@ const findReturnList = async(whs) => {
             WhsCode:whs
         }
     }).catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','findReturnList (function)',`get records with only ordered items from {returnItems} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -474,7 +432,7 @@ const findAllRequest = async(whs) => {
         }
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','findAllRequest (function)',`get records from {requestItems} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -496,7 +454,7 @@ const findPOreceivedList = async(whs) => {
             WhsCode:whs
         }
     }).catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','findPOreceivedList (function)',`get records with only ordered items from {receiptItems} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -504,7 +462,7 @@ const findPOreceivedList = async(whs) => {
     })
 }
 
-const findCountsList = async(value) => {
+const findCountsList = async(value,whs) => {
     return await prisma.countRequest.findMany({
         orderBy:[
             {
@@ -515,11 +473,11 @@ const findCountsList = async(value) => {
             Qnty : {
                 not : 0.000000
             },
-            CountingName : value
-
+            CountingName : value,
+            WhsCode:whs
         }
     }).catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','findCountsList (function)',`get records with only ordered items from {countRequest} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -539,7 +497,7 @@ const findAllPOs = async(whs) => {
         }
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','findAllPOs (function)',`get records from {receiptItems} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -564,7 +522,7 @@ const findAllHisPOs = async(number,begin,end,whs) => {
         }
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','findAllHisPOs (function)',`get records (submitted purchase orders) from {receipthistory} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -589,7 +547,7 @@ const findOrderListTransfer = async(whs) => {
             WhsCode:whs
         }
     }).catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','findOrderListTransfer (function)',`get (transfer between warehouses) records with only ordered items from {requestItems} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -609,7 +567,7 @@ const findOrderReceiptList = async(whs) => {
         }
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','findOrderReceiptList',`get request receipt records from {requestReceiptItems} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -629,7 +587,7 @@ const findOrderDeliverList = async(whs) => {
         }
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','findOrderReceiptList',`get delivered transfer between warehoses records from {requestReceiptItems} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -652,7 +610,7 @@ const createReq = async (rec,genCode,arr,index,page) => {
         if((parseInt(rec.MinStock) != 0) || (parseInt(rec.MaxStock) != 0)){
             return createNewRequestRecord(rec,genCode,index,page)
             .catch((e) => {
-                console.log(e)
+                saveErrorMsg('prisma','createReq (function)',`creating records in {requestItems} table for warehouse no: ${rec.WhsCode} and GenCode: ${genCode}`,e)
                 return e
             })
             .finally(async () => {
@@ -673,7 +631,7 @@ const createHes = async (rec,arr) => {
     if(rec.Status == "sent"){
         return saveInHostrical(rec)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','createHes (function)',`creating records in {rquestOrderhistory} table for warehouse no: ${rec.WhsCode} and GenCode: ${rec.GenCode}`,e)
             reject(e)
         })
         .finally(async () => {
@@ -685,11 +643,11 @@ const createHes = async (rec,arr) => {
     }
 }
 
-const update = async (id,value) => {
+const update = async (id,value,whs) => {
     return new Promise((resolve,reject) => {
         updateExistRecord(id,value,false)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','update (function)',`updating record in {requestItems} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -699,11 +657,11 @@ const update = async (id,value) => {
     })
 }
 
-const updateReqReceipt = async (id,value,diffValue) => {
+const updateReqReceipt = async (id,value,diffValue,whs) => {
     return new Promise((resolve,reject) => {
         updateExistReqReceiptRecord(id,value,diffValue)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','updateReqReceipt (function)',`updating record in {requestReceiptItems} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -725,11 +683,11 @@ const updateExistReqReceiptRecord = async (recordID,value,diffValue) => {
     })
 }
 
-const updateReturn= async (id,value,type) => {
+const updateReturn= async (id,value,type,whs) => {
     return new Promise((resolve,reject) => {
         updateRetExistRecord(id,value,type)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','updateReturn (function)',`updating record in {returnItems} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -761,11 +719,11 @@ const updateRetExistRecord = async (recordID,value,type) => {
     }
 }
 
-const updateSuggest = async (id,value,bool) => {
+const updateSuggest = async (id,value,bool,whs,genCode) => {
     return new Promise((resolve,reject) => {
         updateExistRecord(id,value,bool)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','updateReturn (function)',`updating record (suggestions) in {requestItems} table for warehouse no: ${whs} and gencode: ${genCode}`,e)
             reject()
         })
         .finally(async () => {
@@ -775,11 +733,11 @@ const updateSuggest = async (id,value,bool) => {
     })
 }
 
-const updatePOs = async (id,value) => {
+const updatePOs = async (id,value,whs) => {
     return new Promise((resolve,reject) => {
         updatePOrecord(id,value)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','updatePOs (function)',`updating record in {receiptItems} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -789,11 +747,11 @@ const updatePOs = async (id,value) => {
     })
 }
 
-const updateCounts = async (id,value) => {
+const updateCounts = async (id,value,whs) => {
     return new Promise((resolve,reject) => {
         updateCountrecord(id,value)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','updateCounts (function)',`updating record in {countRequest} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -852,6 +810,7 @@ const createNewRequestRecord = async (record,genCode,id,page) => {
         }
     })
   }catch(err){
+    return err
   }
 }
 
@@ -912,7 +871,7 @@ const updateinHestoricalOrder = async (rec,arr) => {
     return new Promise((resolve,reject) => {
         updateTransferToHes(rec)
         .catch((e) => {
-            // console.log(e)
+            saveErrorMsg('prisma','updateinHestoricalOrder (function)',`updating record (to confirmed status) in {rquestOrderhistory} table for warehouse no: ${rec.WhsCode} and gencode: ${rec.GenCode}`,e)
             reject()
         })
         .finally(async () => {
@@ -976,11 +935,11 @@ const updatePOrecStatus = async (recordID,status) => {
     })
 }
 
-const updateStatus = async (id,arr) => {
+const updateStatus = async (id,arr,whs,gencode) => {
     return new Promise((resolve,reject) => {
         updateRecordStatus(id)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','updateStatus (function)',`updating record (to sent status) in {requestItems} table for warehouse no: ${whs} and gencode: ${gencode}`,e)
             reject()
         })
         .finally(async () => {
@@ -995,7 +954,7 @@ const upsertAllRec = async (rec,arr,count) => {
     return new Promise((resolve,reject) => {
         upsertRecord(rec,count)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','upsertAllRec (function)',`updating record (if found create if not) in {rquestOrderhistory} table for warehouse no: ${rec.WhsCode} and gencode: ${rec.GenCode}`,e)
             reject()
         })
         .finally(async () => {
@@ -1061,7 +1020,7 @@ const getID = async(genCode,itemCode) => {
             ItemCode:itemCode
         }
     }).catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','getID (function)',`get record ID in {rquestOrderhistory} table for gencode: ${genCode}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
@@ -1073,11 +1032,11 @@ const getID = async(genCode,itemCode) => {
     }
 }
 
-const updateReqRecStatus = async (id,arr) => {
+const updateReqRecStatus = async (id,arr,whs,gencode) => {
     return new Promise((resolve,reject) => {
         updateReqRecRecordStatus(id)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','updateReqRecStatus (function)',`updating record (to sent status) in {requestReceiptItems} table for warehouse no: ${whs} and gencode: ${gencode}`,e)
             reject()
         })
         .finally(async () => {
@@ -1088,11 +1047,11 @@ const updateReqRecStatus = async (id,arr) => {
     })
 }
 
-const deleteCountStatus = async (id,arr) => {
+const deleteCountStatus = async (id,arr,whs) => {
     return new Promise((resolve,reject) => {
         deleteCountRecordStatus(id)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','deleteCountStatus (function)',`deleting record (using record ID) in {countRequest} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -1103,11 +1062,11 @@ const deleteCountStatus = async (id,arr) => {
     })
 }
 
-const updateReturnStatus = async (id,arr) => {
+const updateReturnStatus = async (id,arr,whs,genCode) => {
     return new Promise((resolve,reject) => {
         updateRetRecordStatus(id)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','updateReturnStatus (function)',`updating record (to sent status) in {returnItems} table for warehouse no: ${whs} and gencode: ${genCode}`,e)
             reject()
         })
         .finally(async () => {
@@ -1118,11 +1077,11 @@ const updateReturnStatus = async (id,arr) => {
     })
 }
 
-const updatePOstatus = async (id,arr) => {
+const updatePOstatus = async (id,arr,whs,docNum) => {
     return new Promise((resolve,reject) => {
         updatePOrecStatus(id,"sent")
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','updatePOstatus (function)',`updating record (to sent status) in {receiptItems} table for warehouse no: ${whs} and DocNum: ${docNum}`,e)
             reject()
         })
         .finally(async () => {
@@ -1140,7 +1099,7 @@ const getDataLocal = async (whs,employeeNO) =>{
                 const genCode = await file.getGenCode(whs,`./${whs}/postNumber.txt`,employeeNO)
                 const results = findAll(genCode)
                                 .catch((e) => {
-                                    console.log(e)
+                                    saveErrorMsg('prisma','getDataLocal (function)',`get records from {requestItems} table for warehouse no: ${whs} and GenCode: ${genCode}`,e)
                                     reject()
                                 })
                                 .finally(async () => {
@@ -1160,7 +1119,7 @@ const getGenCodeLocal = async (whs) =>{
         try{
             const results = getAllGencodes(whs)
                             .catch((e) => {
-                                console.log(e)
+                                saveErrorMsg('prisma','getGenCodeLocal (function)',`get all gencodes in {rquestOrderhistory} table for warehouse no: ${whs}`,e)
                                 reject()
                             })
                             .finally(async () => {
@@ -1178,7 +1137,7 @@ const getGenCodeTransfer = async () =>{
         try{
             const results = getAllGencodes()
                             .catch((e) => {
-                                console.log(e)
+                                saveErrorMsg('prisma','getGenCodeTransfer (function)',`get all gencodes in {rquestOrderhistory} table for warehouse no: ${whs}`,e)
                                 reject()
                             })
                             .finally(async () => {
@@ -1196,7 +1155,7 @@ const getSavedLocal = async (whs) =>{
         try{
             const results = getAllReqReceRec(whs)
                             .catch((e) => {
-                                console.log(e)
+                                saveErrorMsg('prisma','getSavedLocal (function)',`get records in {requestReceiptItems} table for warehouse no: ${whs}`,e)
                                 reject()
                             })
                             .finally(async () => {
@@ -1284,7 +1243,7 @@ const getDataAllInReturn = async (whs) =>{
         try{
             const results = findInReturn(whs)
                             .catch((e) => {
-                                console.log(e)
+                                saveErrorMsg('prisma','getDataAllInReturn (function)',`get records in {returnItems} table for warehouse no: ${whs}`,e)
                                 reject()
                             })
                             .finally(async () => {
@@ -1316,25 +1275,12 @@ const findInReturn = async (whs) => {
 }
 
 const transferToHes = async (records,whs) => {
-    // createAll(records,null,'historical',whs).then(() => {
-    //     const start = async () => {
-    //         // const genCode = await file.previousGetGenCode(whs,'./postNumber.txt')
-    //         deleteAll(whs)
-    //         .catch((e) => {
-    //             console.log(e)
-    //         })
-    //         .finally(async () => {
-    //             await prisma.$disconnect()
-    //         })
-    //     }
-    //     start()
-    // })
     createAllOrderHis(records,whs)
 }
 
 const createAllOrderHis = async (records,whs) => {
     await deleteAll(whs).catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','deleteAndcreate (function)',`deleting records in {requestItems} table for warehouse no: ${whs} and gencode: ${records[0].GenCode}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
@@ -1366,7 +1312,7 @@ const createAllOrderHis = async (records,whs) => {
         skipDuplicates:true
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','deleteAndcreate (function)',`creating records in {rquestOrderhistory} table for warehouse no: ${whs} and gencode: ${records[0].GenCode}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
@@ -1393,18 +1339,18 @@ const transferToReturnHes = async (records,genCode,whs) => {
         skipDuplicates:true
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','transferToReturnHes (function)',`creating records in {returnhistory} table for warehouse no: ${whs} and gencode: ${genCode}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
     })
 }
 
-const updateFrom = async (value) => {
+const updateFrom = async (value,whs) => {
     return new Promise((resolve,reject) => {
         updateRecordFrom(value)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','updateFrom (function)',`updating records (warehouse from value) in {requestItems} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -1418,7 +1364,7 @@ const saveAndGetPOs = async (results,whs) => {
     return new Promise((resolve,reject) => {
         deleteAllPo(whs)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','saveAndGetPOs (function)',`deletenig (before saving) records in {receiptItems} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -1442,7 +1388,7 @@ const saveAndGetDelivery = async (results,whs) => {
     return new Promise((resolve,reject) => {
         deleteAllDelivery(whs)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','saveAndGetDelivery (function)',`deletenig (before saving) records in {requestReceiptItems} table for warehouse no: ${whs}`,e)
             reject()
         })
         .finally(async () => {
@@ -1468,7 +1414,7 @@ const saveAllDelivery = async (mappedData) => {
         skipDuplicates:true
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','saveAllDelivery (function)',`creating records in {requestReceiptItems} table for warehouse no: ${mappedData[0].WhsCode} and gencode: ${mappedData[0].GenCode}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
@@ -1506,7 +1452,7 @@ const saveAllPo = async (results,whs) => {
 const createPOreq = async (rec,arr,index) => {
     return createNewPORecord(rec,index)
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','createPOreq (function)',`creating records in {receiptItems} table for warehouse no: ${rec.WhsCode} and DocNum: ${rec.DocNum}`,e)
         return e
     })
     .finally(async () => {
@@ -1518,7 +1464,7 @@ const createPOreq = async (rec,arr,index) => {
 const getAllSavedPOs = async (whs) => {
     return getAllPOs(whs)
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','getAllSavedPOs (function)',`get records in {receiptItems} table for warehouse no: ${whs}`,e)
         return
     })
     .finally(async () => {
@@ -1529,7 +1475,7 @@ const getAllSavedPOs = async (whs) => {
 const getAllSavedDelivery = async (whs) => {
     return getAllDelivery(whs)
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','getAllSavedDelivery (function)',`get records in {requestReceiptItems} table for warehouse no: ${whs} for delivery transfer page`,e)
         return
     })
     .finally(async () => {
@@ -1593,7 +1539,7 @@ const transferToReceHis = async (records,genCode,whs) => {
                 new Promise((resolve,reject) => {
                     createPOhisRecord(rec,genCode)
                     .catch((e) => {
-                        console.log(e)
+                        saveErrorMsg('prisma','transferToReceHis (function)',`create record in {receipthistory} table for warehouse no: ${whs}, DocNum:${rec.DocNum} and gencode: ${genCode}`,e)
                         resolve()
                     })
                     .finally(async () => {
@@ -1603,7 +1549,7 @@ const transferToReceHis = async (records,genCode,whs) => {
                 }).then(() => {
                     updatePOrecStatus(rec.id,"received")
                     .catch((e) => {
-                        console.log(e)
+                        saveErrorMsg('prisma','transferToReceHis (function)',`updating record (to received status) in {receiptItems} table for warehouse no: ${whs} and DocNum:${rec.DocNum}`,e)
                         arr.push('updated')
                         if(arr.length == length){
                             resolve()
@@ -1627,7 +1573,7 @@ const transferToReceHis = async (records,genCode,whs) => {
     }).then(() => {
         deleteAllPo(whs)
         .catch((e) => {
-            console.log(e)
+            saveErrorMsg('prisma','transferToReceHis (function)',`deleting records in {receiptItems} table for warehouse no: ${whs}`,e)
         })
         .finally(async () => {
             await prisma.$disconnect()
@@ -1657,7 +1603,7 @@ const createPOhisRecord = async (record,genCode) => {
       }
 }
 
-const rejectRequests = async (genCode) => {
+const rejectRequests = async (genCode,whs) => {
     await prisma.rquestOrderhistory.updateMany({
         where: {
           GenCode:genCode,
@@ -1668,31 +1614,20 @@ const rejectRequests = async (genCode) => {
         },
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','rejectRequests (function)',`updating records (requested by user but did not approved by managers) in {rquestOrderhistory} table for warehouse no: ${whs} and gencode: ${genCode}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
     })
 }
 
-// const deleteAllCountReq = async() => {
-//     await prisma.countRequest.deleteMany()
-//         .catch((e) => {
-//             console.log(e)
-//         })
-//         .finally(async () => {
-//             await prisma.$disconnect()
-//         })
-// }
-
 const createAllcountReq = async(results) => {
-    // await deleteAllCountReq()
     return await prisma.countRequest.createMany({
         data:results,
         skipDuplicates:true
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','createAllcountReq (function)',`creating records in {countRequest} table for warehouse no: ${results[0].WhsCode}`,e)
         return 'error'
     })
     .finally(async () => {
@@ -1707,14 +1642,14 @@ const createAllcountHis = async(results) => {
         skipDuplicates:true
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','createAllcountHis (function)',`creating records in {countHistory} table for warehouse no: ${results[0].WhsCode}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
     })
 }
 
-const getCountNames = async() => {
+const getCountNames = async(whs) => {
     return await prisma.countRequest.groupBy({
         by: ['CountingName'],
         orderBy:[
@@ -1722,16 +1657,19 @@ const getCountNames = async() => {
               CountingName: 'desc',
             }
         ],
+        where:{
+            WhsCode:whs
+        }
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','getCountNames (function)',`get available counting names in {countRequest} table for warehouse no: ${whs}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
     })
 }
 
-const getCountRequest = async(name) => {
+const getCountRequest = async(name,whs) => {
     return await prisma.countRequest.findMany({
         orderBy:[
             {
@@ -1739,18 +1677,19 @@ const getCountRequest = async(name) => {
             }
         ],
         where:{
-            CountingName:name
+            CountingName:name,
+            WhsCode:whs
         }
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','getCountRequest (function)',`get records in {countRequest} table for warehouse no: ${whs} and count name ${name}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
     })
 }
 
-const getCountRequestHis = async(name) => {
+const getCountRequestHis = async(name,whs) => {
     return await prisma.countHistory.findMany({
         orderBy:[
             {
@@ -1758,18 +1697,19 @@ const getCountRequestHis = async(name) => {
             }
         ],
         where:{
-            CountingName:name
+            CountingName:name,
+            WhsCode:whs
         }
     })
     .catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','getCountRequestHis (function)',`get records in {countHistory} table for warehouse no: ${whs} and count name ${name}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
     })
 }
 
-const updateGenCode = async(genCode,newGenCode) => {
+const updateGenCode = async(genCode,newGenCode,whs) => {
     return await prisma.requestItems.updateMany({
         data:{
             GenCode:newGenCode
@@ -1778,24 +1718,56 @@ const updateGenCode = async(genCode,newGenCode) => {
             GenCode:genCode
         }
     }).catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','updateGenCode (function)',`update records with new gencode in {requestItems} table for warehouse no: ${whs} with previous gencode: ${genCode} and new gencode ${newGenCode}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
     })
 }
 
-const getGenCodeMySql = async(genCode) => {
+const getGenCodeMySql = async(genCode,whs) => {
     return await prisma.requestItems.findMany({
         where:{
             GenCode:genCode
         }
     }).catch((e) => {
-        console.log(e)
+        saveErrorMsg('prisma','getGenCodeMySql (function)',`check gencode existance in {requestItems} table for warehouse no: ${whs}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
     })
+}
+
+const saveErrorMsg = async (type,location,when,err) => {
+    let msg = 'UnKnown error'
+    switch(type){
+        case 'prisma':
+            msg = getPrismaError(err)
+            break;
+        default:
+            break;
+    }
+    await prisma.errorLog.create({
+        data:{
+            Type:type,
+            Location:location,
+            When:when,
+            ErrorMsg:msg
+        }
+    }).catch((e) => {
+        console.log("error in saving in errorLog table",e)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
+const getPrismaError = (e) => {
+    if((e instanceof Prisma.PrismaClientKnownRequestError) || (e instanceof Prisma.PrismaClientRustPanicError) || (e instanceof Prisma.PrismaClientInitializationError) || (e instanceof Prisma.PrismaClientValidationError)){
+        return `${e.message}`
+    }else{
+        return 'UnKnown error'
+    }
 }
 
 module.exports = {
@@ -1856,5 +1828,6 @@ module.exports = {
     deleteDeliveredInReqReceipt,
     updateGenCode,
     getCountRows,
-    getGenCodeMySql
+    getGenCodeMySql,
+    saveErrorMsg
 }
