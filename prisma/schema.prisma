@@ -29,6 +29,7 @@ model requestItems {
     Order Decimal @db.Decimal(10,6) @default(0)
     Status String @default("pending")
     GenCode String
+    Mandatory Boolean @default(false)
     Suggest Boolean @default(false)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -204,7 +205,7 @@ model errorLog{
     id Int @id @default(autoincrement())
     Type String
     Location String
-    When String
-    ErrorMsg String
+    When String @db.VarChar(500)
+    ErrorMsg String @db.VarChar(500)
     createdAt DateTime @default(now())
 }

@@ -8,13 +8,20 @@ const requestPage = async (req,res) => {
     if(req.session.loggedin)
     {
         prisma.getDataLocal(req.session.whsCode,req.session.employeeNO).then(results => {
+            let mandatoryNo = 0;
+            results.forEach(rec => {
+                if(rec.Mandatory && parseFloat(rec.Order) == parseFloat(0)){
+                    mandatoryNo += 1
+                }
+            })
             const start = async () => {
                 const value = await file.getlabel(req.session.whsCode)
                 const data = {
                     results,
                     username : req.session.username,
                     whsCode : req.session.whsCode,
-                    value
+                    value,
+                    mandatoryNo
                 }
                 res.render('request',{data})
             }
@@ -539,7 +546,8 @@ const changeFrom = async(req,res) => {
 }
 
 const createSuggest = async (req,res) => {
-    const rows = await prisma.findAllRequest(req.session.whsCode)
+    const genCode = await file.getGenCode(req.session.whsCode,`./${req.session.whsCode}/postNumber.txt`,req.session.employeeNO)
+    const rows = await prisma.findAllToSugg(req.session.whsCode,genCode)
     const length = rows.length
     const arr = []
     rows.forEach(rec => {
@@ -612,7 +620,8 @@ const createSuggest = async (req,res) => {
 }
 
 const removeSuggest = async (req,res) => {
-    const rows = await prisma.findAllRequest(req.session.whsCode)
+    const genCode = await file.getGenCode(req.session.whsCode,`./${req.session.whsCode}/postNumber.txt`,req.session.employeeNO)
+    const rows = await prisma.findAllToSugg(req.session.whsCode,genCode)
     const length = rows.length
     const arr = []
     rows.forEach(rec => {
@@ -749,9 +758,15 @@ const promotionPage = async (req,res) => {
     if(req.session.loggedin)
     {
         prisma.getDataLocal(req.session.whsCode,req.session.employeeNO).then(results => {
+            let mandatoryNo = 0;
+            results.forEach(rec => {
+                if(rec.Mandatory && parseFloat(rec.Order) == parseFloat(0)){
+                    mandatoryNo += 1
+                }
+            })
             const start = async() => {
                 const value = await file.getlabel(req.session.whsCode)
-                res.render('promotion',{info:{data:results,value}})
+                res.render('promotion',{info:{data:results,value,mandatoryNo}})
             }
             start()
         }).catch(err => {
