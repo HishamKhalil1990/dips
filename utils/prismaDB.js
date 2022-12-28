@@ -440,6 +440,27 @@ const findAllRequest = async(whs) => {
     })
 }
 
+const findAllToSugg = async(whs,genCode) => {
+    return await prisma.requestItems.findMany({
+        orderBy:[
+            {
+                ItemCode: 'asc',
+            }
+        ],
+        where:{
+            WhsCode:whs,
+            GenCode:genCode
+        }
+    })
+    .catch((e) => {
+        saveErrorMsg('prisma','findAllToSugg (function)',`get records from {requestItems} table for warehouse no: ${whs} for create or undo suggest`,e)
+        return
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+}
+
 const findPOreceivedList = async(whs) => {
     return await prisma.receiptItems.findMany({
         orderBy:[
@@ -723,7 +744,7 @@ const updateSuggest = async (id,value,bool,whs,genCode) => {
     return new Promise((resolve,reject) => {
         updateExistRecord(id,value,bool)
         .catch((e) => {
-            saveErrorMsg('prisma','updateReturn (function)',`updating record (suggestions) in {requestItems} table for warehouse no: ${whs} and gencode: ${genCode}`,e)
+            saveErrorMsg('prisma','updateSuggest (function)',`updating record (suggestions) in {requestItems} table for warehouse no: ${whs} and gencode: ${genCode}`,e)
             reject()
         })
         .finally(async () => {
@@ -806,7 +827,8 @@ const createNewRequestRecord = async (record,genCode,id,page) => {
           ConvFactor: record.ConvFactor != null? record.ConvFactor : undefined,
           Warehousefrom: page == "goTransfer" ? record.Warehouses : (record.ListName == 'Consumable'? CONSUMABLE_WAREHOUSE : MAIN_WHAREHOUSE),
           Warehouses: page == "goTransfer" ? record.Warehouses : undefined,
-          GenCode: genCode
+          GenCode: genCode,
+          Mandatory:record.Mandatory != null? record.Mandatory : undefined,
         }
     })
   }catch(err){
@@ -1726,12 +1748,12 @@ const updateGenCode = async(genCode,newGenCode,whs) => {
 }
 
 const getGenCodeMySql = async(genCode,whs) => {
-    return await prisma.requestItems.findMany({
+    return await prisma.rquestOrderhistory.findMany({
         where:{
             GenCode:genCode
         }
     }).catch((e) => {
-        saveErrorMsg('prisma','getGenCodeMySql (function)',`check gencode existance in {requestItems} table for warehouse no: ${whs}`,e)
+        saveErrorMsg('prisma','getGenCodeMySql (function)',`check gencode existance in {rquestOrderhistory} table for warehouse no: ${whs}`,e)
     })
     .finally(async () => {
         await prisma.$disconnect()
@@ -1829,5 +1851,6 @@ module.exports = {
     updateGenCode,
     getCountRows,
     getGenCodeMySql,
-    saveErrorMsg
+    saveErrorMsg,
+    findAllToSugg
 }

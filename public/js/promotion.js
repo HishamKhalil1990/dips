@@ -3,6 +3,10 @@ let option = ""
 let note= ""
 let minmumOrder;
 let closeOrder;
+////////////////////////////////////////////////////////////////////////////////////////////////
+let mandatoryNo = 0;
+let preID;
+////////////////////////////////////////////////////////////////////////////////////////////////
 $(function () {
   $(document).ready(function () {
     $("#example").DataTable();
@@ -17,6 +21,15 @@ $(function () {
     } catch (err) {
       console.log(err);
     }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    const classes = $('#manNo').attr('class').split(/\s+/)
+    classes.forEach(cls => {
+      const arr = cls.split('-')
+      if(arr[0] == 'man'){
+        mandatoryNo = parseInt(arr[1])
+      }
+    });
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     $("#submitOrder").on("click", () => {
       showModal('notes')
     });
@@ -112,10 +125,13 @@ const save = (id, input, previousVal,lastValue) => {
   let value = input.val();
   const max = $(`#max-${id}`);
   const maxValue = max[0].innerHTML;
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  const mandatory = $(`#man-${id}`)[0].innerHTML
+  ////////////////////////////////////////////////////////////////////////////////////////////////
   if((lastValue == value) && (value != "")){
     tr.addClass("active-input");
     tr.removeClass("hide");
-    if(value <= maxValue){
+    if(parseFloat(value) <= parseFloat(maxValue)){
       tr.css("background-color", "green");
     }else{
       tr.css("background-color", "red");
@@ -167,6 +183,25 @@ const save = (id, input, previousVal,lastValue) => {
         input.val("");
     }
   }
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  if(mandatory=="M"){
+    let selectedValue = input.val();
+    if(!(selectedValue == "" && lastValue == "")){
+      if(selectedValue == "" && lastValue != ""){
+        if((id + "up") != preID){
+          mandatoryNo += 1
+          tr.css("background-color", "#ffd861");
+          preID = id + "up"
+        }
+      }else if (selectedValue != "" && lastValue == ""){
+        if((id + "down") != preID){
+          mandatoryNo -= 1
+          preID = id + "down"
+        }
+      }
+    }
+  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////
   return;
 };
 
@@ -218,35 +253,43 @@ const setOrderValueZero = async (id) => {
 };
 
 const tryToSubmit = () => {
-  $("body").attr("style", "height:100%");
-  showModal("submit");
-  $.post(`/Order/Submit/promotion/${note}`).then((msg) => {
-    if (msg == "done") {
-      note = ""
-      setTimeout(() => {
-        hideModal("submit");
-        $("#tbody").empty();
-        $("body").attr("style", "height:100%");
+  //////////////////////////////////////////////////////////////////////////////////////////////// 
+  if(mandatoryNo == 0){
+  ////////////////////////////////////////////////////////////////////////////////////////////////  
+    $("body").attr("style", "height:100%");
+    showModal("submit");
+    $.post(`/Order/Submit/promotion/${note}`).then((msg) => {
+      if (msg == "done") {
+        note = ""
         setTimeout(() => {
-          showModal("success");
+          hideModal("submit");
+          $("#tbody").empty();
+          $("body").attr("style", "height:100%");
           setTimeout(() => {
-            $("#exit p")[0].innerHTML = "Log out";
-            $("#report p")[0].innerHTML = "Sent report";
-            hideModal("success");
-          }, 1000);
-        }, 500);
-      }, 1000);
-    } else if (msg == "error") {
-      setTimeout(() => {
-        changeModalCont("net-error", "submit");
-      }, 1000);
-    } else if (msg == "no data sent") {
-      changeModalCont("noData", "submit");
-      setTimeout(() => {
-        hideModal("noData");
-      }, 1000);
-    }
-  });
+            showModal("success");
+            setTimeout(() => {
+              $("#exit p")[0].innerHTML = "Log out";
+              $("#report p")[0].innerHTML = "Sent report";
+              hideModal("success");
+            }, 1000);
+          }, 500);
+        }, 1000);
+      } else if (msg == "error") {
+        setTimeout(() => {
+          changeModalCont("net-error", "submit");
+        }, 1000);
+      } else if (msg == "no data sent") {
+        changeModalCont("noData", "submit");
+        setTimeout(() => {
+          hideModal("noData");
+        }, 1000);
+      }
+    });
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  }else{
+    alert("الرجاء تعبئة المواد الاجبارية")
+  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////
 };
 
 const showModal = (type) => {

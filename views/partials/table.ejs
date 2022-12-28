@@ -11,6 +11,9 @@
                     <th>Item Code</th>
                     <th>Item Name</th>
                     <th>Barcode</th>
+                    <% if(info.page == 'request') { %>
+                      <th id="manNo" class="man-<%= info.manNo %>">Mandatory</th>
+                    <% } %>
                     <!-- <th>Branch</th> -->
                     <th>Avg. Daily Sale</th>
                     <th>On Hand</th>
@@ -37,14 +40,26 @@
                           id="tr-<%= item.id %>"
                           style="background-color:green"
                         >
-                      <% }
-                    } else { %>
-                      <tr class="trEfects hide" id="tr-<%= item.id %>">
-                    <% } %>
+                        <% }
+                    } else {
+                      if(item.Mandatory && info.page == 'request') {  %>
+                        <tr 
+                        class="trEfects hide" 
+                        id="tr-<%= item.id %>"
+                        style="background-color:#ffd861"
+                        >
+                      <% } else { %>  
+                        <tr class="trEfects hide" id="tr-<%= item.id %>">
+                    <% }} %>
                       <td style="display:none;" id="conv<%= item.id %>"><%= item.ConvFactor %></td>
                       <td id="td-<%= item.id %>"><%= item.ItemCode %></td>
                       <td id="td-<%= item.id %>"><%= item.ItemName %></td>
                       <td id="td-<%= item.id %>"><%= item.CodeBars %></td>
+                      <% if(item.Mandatory && info.page == 'request') { %>
+                        <td id="man-<%= item.id %>" class="mandatory">M</td>
+                      <% } else if(info.page == 'request') { %> 
+                        <td id="man-<%= item.id %>">N</td> 
+                      <% }; %>
                       <!-- <td id="td-<%= item.id %>"><%= item.ListName %></td> -->
                       <td id="td-<%= item.id %>"><%= item.AvgDaily %></td>
                       <td id="onHand-<%= item.id %>"><%= item.OnHand %></td>

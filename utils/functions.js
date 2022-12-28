@@ -543,7 +543,7 @@ const startPOtransaction = async (pool,rec,userName,arr,length,gencode) => {
                     console.log("Transaction committed.");
                     checkSavedInPOtSql(rec.ItemCode,rec.DocNum,pool)
                     .then(() => {
-                        prisma.updatePOstatus(rec.id,arr,rec.WhsCode,DocNum)
+                        prisma.updatePOstatus(rec.id,arr,rec.WhsCode,rec.DocNum)
                         .then(() => {
                             if(arr.length == length){
                                 pool.close();

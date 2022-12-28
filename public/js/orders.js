@@ -3,6 +3,10 @@ let option = ""
 let note= ""
 let minmumOrder;
 let closeOrder;
+////////////////////////////////////////////////////////////////////////////////////////////////
+let mandatoryNo = 0;
+let preID;
+////////////////////////////////////////////////////////////////////////////////////////////////
 $(function () {
   $(document).ready(function () {
     $("#example").DataTable();
@@ -17,6 +21,17 @@ $(function () {
     } catch (err) {
       console.log(err);
     }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    if(page == "request"){
+      const classes = $('#manNo').attr('class').split(/\s+/)
+      classes.forEach(cls => {
+        const arr = cls.split('-')
+        if(arr[0] == 'man'){
+          mandatoryNo = parseInt(arr[1])
+        }
+      });
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     $("#submitOrder").on("click", () => {
       showModal('notes')
     });
@@ -111,6 +126,12 @@ const edit = (id) => {
 const save = (id, input, previousVal,lastValue) => {
   const tr = $(`#tr-${id}`);
   let value = input.val();
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  let mandatory
+  if(page == "request"){
+    mandatory = $(`#man-${id}`)[0].innerHTML
+  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////
   if((lastValue == value) && (value != "")){
     tr.addClass("active-input");
     tr.removeClass("hide");
@@ -179,6 +200,25 @@ const save = (id, input, previousVal,lastValue) => {
       input.val("");
     }
   }
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  if(mandatory=="M"){
+    let selectedValue = input.val();
+    if(!(selectedValue == "" && lastValue == "")){
+      if(selectedValue == "" && lastValue != ""){
+        if((id + "up") != preID){
+          mandatoryNo += 1
+          tr.css("background-color", "#ffd861");
+          preID = id + "up"
+        }
+      }else if (selectedValue != "" && lastValue == ""){
+        if((id + "down") != preID){
+          mandatoryNo -= 1
+          preID = id + "down"
+        }
+      }
+    }
+  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////
   return;
 };
 
@@ -250,42 +290,50 @@ const setOrderValueZero = async (id) => {
 };
 
 const tryToSubmit = () => {
-  $("body").attr("style", "height:100%");
-  showModal("submit");
-  $.post(`/Order/Submit/${page}/${note}`).then((msg) => {
-    if (msg == "done") {
-      note = ""
-      setTimeout(() => {
-        hideModal("submit");
-        $("#tbody").empty();
-        $("body").attr("style", "height:100%");
+  //////////////////////////////////////////////////////////////////////////////////////////////// 
+  if(mandatoryNo == 0){
+  ////////////////////////////////////////////////////////////////////////////////////////////////  
+    $("body").attr("style", "height:100%");
+    showModal("submit");
+    $.post(`/Order/Submit/${page}/${note}`).then((msg) => {
+      if (msg == "done") {
+        note = ""
         setTimeout(() => {
-          showModal("success");
+          hideModal("submit");
+          $("#tbody").empty();
+          $("body").attr("style", "height:100%");
           setTimeout(() => {
-            $("#exit p")[0].innerHTML = "Log out";
-            $("#report p")[0].innerHTML = "Sent report";
-            if(page == 'transfer'){
-              $("#print").attr('style','display:"";')
-              $('#print').on('click',()=>{
-                const genCode = $("title")[0].id;
-                getDataAndPrint("request",genCode)
-              });
-            }
-            hideModal("success");
-          }, 1000);
-        }, 500);
-      }, 1000);
-    } else if (msg == "error") {
-      setTimeout(() => {
-        changeModalCont("net-error", "submit");
-      }, 1000);
-    } else if (msg == "no data sent") {
-      changeModalCont("noData", "submit");
-      setTimeout(() => {
-        hideModal("noData");
-      }, 1000);
-    }
-  });
+            showModal("success");
+            setTimeout(() => {
+              $("#exit p")[0].innerHTML = "Log out";
+              $("#report p")[0].innerHTML = "Sent report";
+              if(page == 'transfer'){
+                $("#print").attr('style','display:"";')
+                $('#print').on('click',()=>{
+                  const genCode = $("title")[0].id;
+                  getDataAndPrint("request",genCode)
+                });
+              }
+              hideModal("success");
+            }, 1000);
+          }, 500);
+        }, 1000);
+      } else if (msg == "error") {
+        setTimeout(() => {
+          changeModalCont("net-error", "submit");
+        }, 1000);
+      } else if (msg == "no data sent") {
+        changeModalCont("noData", "submit");
+        setTimeout(() => {
+          hideModal("noData");
+        }, 1000);
+      }
+    });
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+  }else{
+    alert("الرجاء تعبئة المواد الاجبارية")
+  }
+  ////////////////////////////////////////////////////////////////////////////////////////////////
 };
 
 const showModal = (type) => {
