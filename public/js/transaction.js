@@ -25,7 +25,7 @@ $(document).ready(function() {
             }
         })
         .fail(() => {
-            alert("خطأ داخلي الرجاء");
+            alert("الرجاء حاول مرة اخرى");
             setTimeout(() => {
                 location.reload();
             },1000)
@@ -51,6 +51,10 @@ $(document).ready(function() {
     $('#return').on('click',()=>{
         page = 'goReturn'
         showPage(page)
+    });
+    $('#report').on('click',()=>{
+        const data = `<div><a style="color: white;" href="/Report" id="goReport">press</a></div>`
+        goDirect('goReport',data)
     });
     $('.netError_denied').on('click',()=>{
         hideModal("net-error")

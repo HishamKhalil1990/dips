@@ -3,10 +3,8 @@ let option = ""
 let note= ""
 let minmumOrder;
 let closeOrder;
-////////////////////////////////////////////////////////////////////////////////////////////////
 let mandatoryNo = 0;
 let preID;
-////////////////////////////////////////////////////////////////////////////////////////////////
 $(function () {
   $(document).ready(function () {
     $("#example").DataTable();
@@ -21,7 +19,6 @@ $(function () {
     } catch (err) {
       console.log(err);
     }
-    ////////////////////////////////////////////////////////////////////////////////////////////////
     const classes = $('#manNo').attr('class').split(/\s+/)
     classes.forEach(cls => {
       const arr = cls.split('-')
@@ -29,7 +26,6 @@ $(function () {
         mandatoryNo = parseInt(arr[1])
       }
     });
-    ///////////////////////////////////////////////////////////////////////////////////////////////
     $("#submitOrder").on("click", () => {
       showModal('notes')
     });
@@ -125,9 +121,7 @@ const save = (id, input, previousVal,lastValue) => {
   let value = input.val();
   const max = $(`#max-${id}`);
   const maxValue = max[0].innerHTML;
-  ////////////////////////////////////////////////////////////////////////////////////////////////
   const mandatory = $(`#man-${id}`)[0].innerHTML
-  ////////////////////////////////////////////////////////////////////////////////////////////////
   if((lastValue == value) && (value != "")){
     tr.addClass("active-input");
     tr.removeClass("hide");
@@ -165,7 +159,6 @@ const save = (id, input, previousVal,lastValue) => {
                 tr.css("background-color", "green");
               }else{
                 tr.css("background-color", "red");
-                // alert("يرجى العلم ان الكمية المطلوبة اعلى من Max")
               }
             }
             });
@@ -183,7 +176,6 @@ const save = (id, input, previousVal,lastValue) => {
         input.val("");
     }
   }
-  ////////////////////////////////////////////////////////////////////////////////////////////////
   if(mandatory=="M"){
     let selectedValue = input.val();
     if(!(selectedValue == "" && lastValue == "")){
@@ -201,7 +193,6 @@ const save = (id, input, previousVal,lastValue) => {
       }
     }
   }
-  ////////////////////////////////////////////////////////////////////////////////////////////////
   return;
 };
 
@@ -253,9 +244,7 @@ const setOrderValueZero = async (id) => {
 };
 
 const tryToSubmit = () => {
-  //////////////////////////////////////////////////////////////////////////////////////////////// 
-  if(mandatoryNo == 0){
-  ////////////////////////////////////////////////////////////////////////////////////////////////  
+  if(mandatoryNo == 0){ 
     $("body").attr("style", "height:100%");
     showModal("submit");
     $.post(`/Order/Submit/promotion/${note}`).then((msg) => {
@@ -285,11 +274,9 @@ const tryToSubmit = () => {
         }, 1000);
       }
     });
-  ////////////////////////////////////////////////////////////////////////////////////////////////
   }else{
     alert("الرجاء تعبئة المواد الاجبارية")
   }
-  ////////////////////////////////////////////////////////////////////////////////////////////////
 };
 
 const showModal = (type) => {

@@ -405,7 +405,7 @@ const submit = async (req,res) =>{
                 }else if(page == 'receipt'){
                     prisma.deleteAllInReqReceipt(req.session.whsCode).then(() => {
                         const genCode = records[0].GenCode
-                        new Promise((resolve,reject) => {
+                        const finish = new Promise((resolve,reject) => {
                             const length = records.length
                             const arr = []
                             records.forEach(rec => {
@@ -420,6 +420,7 @@ const submit = async (req,res) =>{
                                 })
                             })
                         })
+                        finish
                         .then(() => {
                             prisma.rejectRequests(genCode,req.session.whsCode)
                         }).catch(() => {

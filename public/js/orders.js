@@ -3,10 +3,8 @@ let option = ""
 let note= ""
 let minmumOrder;
 let closeOrder;
-////////////////////////////////////////////////////////////////////////////////////////////////
 let mandatoryNo = 0;
 let preID;
-////////////////////////////////////////////////////////////////////////////////////////////////
 $(function () {
   $(document).ready(function () {
     $("#example").DataTable();
@@ -21,7 +19,6 @@ $(function () {
     } catch (err) {
       console.log(err);
     }
-    ////////////////////////////////////////////////////////////////////////////////////////////////
     if(page == "request"){
       const classes = $('#manNo').attr('class').split(/\s+/)
       classes.forEach(cls => {
@@ -31,7 +28,6 @@ $(function () {
         }
       });
     }
-    ///////////////////////////////////////////////////////////////////////////////////////////////
     $("#submitOrder").on("click", () => {
       showModal('notes')
     });
@@ -84,9 +80,6 @@ $(function () {
       logOut();
     }
   });
-  // $("#select-0").on("click", () => {
-  //   selectFrom('#select-0')
-  // });
   $("#suggestion").on("click", (e) => {
     const txt = $("#suggestion p")[0].innerHTML.trim();
     if (txt == "Suggestion") {
@@ -126,12 +119,10 @@ const edit = (id) => {
 const save = (id, input, previousVal,lastValue) => {
   const tr = $(`#tr-${id}`);
   let value = input.val();
-  ////////////////////////////////////////////////////////////////////////////////////////////////
   let mandatory
   if(page == "request"){
     mandatory = $(`#man-${id}`)[0].innerHTML
   }
-  ////////////////////////////////////////////////////////////////////////////////////////////////
   if((lastValue == value) && (value != "")){
     tr.addClass("active-input");
     tr.removeClass("hide");
@@ -200,7 +191,6 @@ const save = (id, input, previousVal,lastValue) => {
       input.val("");
     }
   }
-  ////////////////////////////////////////////////////////////////////////////////////////////////
   if(mandatory=="M"){
     let selectedValue = input.val();
     if(!(selectedValue == "" && lastValue == "")){
@@ -218,7 +208,6 @@ const save = (id, input, previousVal,lastValue) => {
       }
     }
   }
-  ////////////////////////////////////////////////////////////////////////////////////////////////
   return;
 };
 
@@ -289,10 +278,8 @@ const setOrderValueZero = async (id) => {
   });
 };
 
-const tryToSubmit = () => {
-  //////////////////////////////////////////////////////////////////////////////////////////////// 
-  if(mandatoryNo == 0){
-  ////////////////////////////////////////////////////////////////////////////////////////////////  
+const tryToSubmit = () => { 
+  if(mandatoryNo == 0){ 
     $("body").attr("style", "height:100%");
     showModal("submit");
     $.post(`/Order/Submit/${page}/${note}`).then((msg) => {
@@ -329,11 +316,9 @@ const tryToSubmit = () => {
         }, 1000);
       }
     });
-  ////////////////////////////////////////////////////////////////////////////////////////////////
   }else{
     alert("الرجاء تعبئة المواد الاجبارية")
   }
-  ////////////////////////////////////////////////////////////////////////////////////////////////
 };
 
 const showModal = (type) => {
@@ -381,6 +366,9 @@ const hideModal = (type) => {
       break;
     case "notes":
       $(".modal_notes_container").attr("style", "display:none;");
+      break;
+    case "waiting":
+      $(".modal_waiting_container").attr("style", "display:none;");
       break;
     default:
       break;

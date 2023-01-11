@@ -16,6 +16,7 @@ const SQL_RECEIVING_RETURNPO_PROCEDURE = process.env.SQL_RECEIVING_RETURNPO_PROC
 const SQL_RECEIVINGPO_PROCEDURE = process.env.SQL_RECEIVINGPO_PROCEDURE
 const MAIN_WHAREHOUSE =process.env.MAIN_WHAREHOUSE
 const CONSUMABLE_WAREHOUSE =process.env.CONSUMABLE_WAREHOUSE
+const SQL_SALES_REPORT = process.env.SQL_SALES_REPORT
 
 const toggleRequestButton = (requestDay,requestHour) => {
     const loggedDay = new Date().toLocaleString('en-us', {  weekday: 'long' });
@@ -177,6 +178,7 @@ const sendRequestOrder = async (records,userName,page,note,employeeNO,count) => 
                                     prisma.updateReqRecStatus(rec.id,arr)
                                     .then(() => {
                                         if(arr.length == length){
+                                            pool.close()
                                             resolve();
                                         }
                                     })
@@ -223,6 +225,7 @@ const sendReturnItems = async (records,userName,note,genCode) => {
                         }else{
                             arr.push('added')
                             if(arr.length == length){
+                                pool.close()
                                 resolve();
                             }
                         }
@@ -354,6 +357,7 @@ const checkSavedInRequestSql = async(itemCode,genCode,pool) => {
     return new Promise((resolve,reject) => {
         pool.request().query(queryStatment)
         .then(result => {
+            pool.close()
             if(result.recordset.length > 0){
                 console.log("Transaction checked.");
                 // console.log(result.recordset[0].ItemCode,result.recordset[0].ItemName,result.recordset[0].WhsCode,result.recordset[0].WhsName,result.recordset[0].QtyOrders,result.recordset[0].GenCode,result.recordset[0].UserName,result.recordset[0].Note);
@@ -493,6 +497,7 @@ const sendPOtoSQL = async (records,userName,gencode) => {
                         }else{
                             arr.push('added')
                             if(arr.length == length){
+                                pool.close()
                                 resolve();
                             }
                         }
@@ -568,6 +573,7 @@ const checkSavedInPOtSql = async(itemCode,docNum,pool) => {
     return new Promise((resolve,reject) => {
         pool.request().query(queryStatment)
         .then(result => {
+            pool.close()
             if(result.recordset.length > 0){
                 resolve()
             }else{
@@ -641,6 +647,7 @@ const submitDeliverToSQL = async(records) => {
                         sendDeliverRec(rec,arr,pool,length)
                         .then(() => {
                             if(arr.length == length){
+                                pool.close()
                                 resolve()
                             }
                         })
@@ -650,6 +657,7 @@ const submitDeliverToSQL = async(records) => {
                     }else{
                         arr.push('added')
                         if(arr.length == length){
+                            pool.close()
                             resolve()
                         }
                     }
@@ -963,6 +971,7 @@ const checkGenCodeSql = async(pool,genCode) => {
     const queryStatment = `select * from ${REQUSET_TRANSFER_TABLE} where GenCode = '${genCode}'`
     return pool.request().query(queryStatment)
     .then(result => {
+        pool.close()
         if(result.recordset.length > 0){
             return true
         }else{
@@ -980,6 +989,60 @@ const updateExistGenCode = async(whsCode,employeeNO,genCode) => {
         await prisma.updateGenCode(genCode,newGenCode,whsCode)
     }
     return newGenCode
+}
+
+const getSalesReportData = async (whs,startDate,endDate) =>{ 
+    return new Promise((resolve,reject) => {
+        let response = {
+            msg:'error'
+        }
+        try{
+            const start = async() => {
+                const pool = await sql.getReportSQL()
+                if(pool){
+                    const transaction = await sql.getTransaction(pool);
+                    return transaction.begin((err) => {
+                        if(err){
+                            console.log(err)
+                            pool.close()
+                            resolve(response)
+                        }
+                        pool.request()
+                        .input("WhsCode",whs)
+                        .input("fromDate",startDate)
+                        .input("ToDate",endDate)
+                        .execute(SQL_SALES_REPORT,(err,result) => {
+                            if(err){
+                                console.log('excute',err)
+                                pool.close()
+                                resolve(response)
+                            }
+                            transaction.commit((err) => {
+                                if(err){
+                                    console.log('transaction error : ',err)
+                                    pool.close()
+                                    resolve(response)
+                                }else{
+                                    console.log("Transaction committed.");
+                                    pool.close()
+                                    response.msg = 'done'
+                                    response.data = result.recordset
+                                    resolve(response)
+                                }
+                            });
+                        })
+                    })
+                }else{
+                    resolve(response)
+                }
+            }
+            start()
+        }catch(err){
+            console.log(err)
+            resolve(response)
+        }
+    })
+
 }
 
 module.exports = {
@@ -1006,4 +1069,5 @@ module.exports = {
     submitCountToSQL,
     updateCountNo,
     exportReqToExcel,
+    getSalesReportData
 }
