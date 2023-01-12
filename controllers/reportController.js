@@ -16,8 +16,13 @@ const salesReportData = async (req,res) => {
         const whs = req.session.whsCode
         functions.getSalesReportData(whs,start,end)
         .then(response => {
+            let total = 0;
+            response.data.forEach(rec => {
+                total = total + parseFloat(rec.Amount)
+            })
+            total = parseFloat(total).toFixed(2)
             if(response.msg == 'done'){
-                res.render('partials/salesReportTable',{results:response.data})
+                res.render('partials/salesReportTable',{results:response.data,total})
             }else{
                 res.send('error')
             }
